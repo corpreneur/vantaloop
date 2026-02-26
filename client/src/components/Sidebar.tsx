@@ -1,21 +1,32 @@
 /*
  * Design: "Clean Slate" -- Monochrome Workspace with Warm Accents
- * Persistent sidebar with epic filters, team members, and board metadata.
+ * Persistent sidebar with view navigation, epic filters, and team members.
  * Typography: Instrument Serif for section headers, Satoshi for body.
  * Color: B/W with muted copper accent for selected states.
  */
 
-import { EPICS, TEAM_MEMBERS, type EpicId } from "@/lib/data";
-import { LayoutGrid, Users, Filter, ChevronDown, ChevronRight } from "lucide-react";
+import { EPICS, TEAM_MEMBERS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
+import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
+const VIEW_ICONS: Record<ViewId, React.ReactNode> = {
+  board: <LayoutGrid size={15} strokeWidth={1.5} />,
+  timeline: <Clock size={15} strokeWidth={1.5} />,
+  "decision-log": <Gavel size={15} strokeWidth={1.5} />,
+  digest: <Bot size={15} strokeWidth={1.5} />,
+};
+
 interface SidebarProps {
+  activeView: ViewId;
+  onChangeView: (v: ViewId) => void;
   selectedEpics: EpicId[];
   onToggleEpic: (epicId: EpicId) => void;
   onClearFilters: () => void;
 }
 
 export default function Sidebar({
+  activeView,
+  onChangeView,
   selectedEpics,
   onToggleEpic,
   onClearFilters,
@@ -37,11 +48,24 @@ export default function Sidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {/* Board view */}
-        <div className="flex items-center gap-2.5 px-2 py-2 rounded-md bg-secondary text-foreground">
-          <LayoutGrid size={15} strokeWidth={1.5} />
-          <span className="text-sm font-medium">Board View</span>
-        </div>
+        {/* Views */}
+        {VIEWS.map((view) => {
+          const active = activeView === view.id;
+          return (
+            <button
+              key={view.id}
+              onClick={() => onChangeView(view.id)}
+              className={`flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left transition-colors duration-150 ${
+                active
+                  ? "bg-secondary text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              }`}
+            >
+              {VIEW_ICONS[view.id]}
+              <span className="text-sm font-medium">{view.label}</span>
+            </button>
+          );
+        })}
 
         {/* Epics section */}
         <div className="pt-4">

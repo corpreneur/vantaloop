@@ -5,16 +5,18 @@
  * Fade-in overlay at 200ms with content stagger.
  */
 
-import { EPICS, COLUMNS, type FeedbackCard } from "@/lib/data";
+import { EPICS, COLUMNS, FEEDBACK_TAGS, isCardStale, TEAM_MEMBERS, type FeedbackCard, type Comment } from "@/lib/data";
+import CommentThread from "@/components/CommentThread";
 import { X, CheckCircle2, Circle, AlertTriangle, Lightbulb, Target, Eye, Route, Gavel } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CardDetailProps {
   card: FeedbackCard | null;
   onClose: () => void;
+  onAddComment?: (cardId: string, text: string) => void;
 }
 
-export default function CardDetail({ card, onClose }: CardDetailProps) {
+export default function CardDetail({ card, onClose, onAddComment }: CardDetailProps) {
   if (!card) return null;
 
   const epic = EPICS.find((e) => e.id === card.epicId);
@@ -57,6 +59,25 @@ export default function CardDetail({ card, onClose }: CardDetailProps) {
                 <h2 className="font-display text-2xl text-foreground leading-tight">
                   {card.title}
                 </h2>
+                {/* Tags */}
+                {card.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {card.tags.map((tagId) => {
+                      const tag = FEEDBACK_TAGS.find((t) => t.id === tagId);
+                      return tag ? (
+                        <span key={tagId} className="text-[9px] px-1.5 py-0.5 rounded-sm bg-secondary text-muted-foreground border border-border/60">
+                          {tag.label}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                )}
+                {isCardStale(card) && (
+                  <div className="mt-1.5 flex items-center gap-1 text-destructive">
+                    <AlertTriangle size={11} strokeWidth={1.5} />
+                    <span className="text-[9px] font-medium uppercase tracking-wide">Stale -- needs attention</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-3 mt-2">
                   <span className="label-meta text-muted-foreground/60">
                     {column?.title}
@@ -358,6 +379,19 @@ export default function CardDetail({ card, onClose }: CardDetailProps) {
                     </p>
                   )}
                 </div>
+              </Section>
+
+              {/* Comments (#2) */}
+              <div className="border-t border-border" />
+              <Section
+                icon={<span className="text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>}
+                title={`Comments (${card.comments.length})`}
+                delay={0.45}
+              >
+                <CommentThread
+                  comments={card.comments}
+                  onAddComment={(text) => onAddComment?.(card.id, text)}
+                />
               </Section>
             </div>
           </motion.div>

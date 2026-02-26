@@ -1,12 +1,11 @@
 /*
  * Design: "Clean Slate" -- Monochrome Workspace with Warm Accents
  * Individual feedback card on the Kanban board.
- * Warm gray surface (#F5F5F0), 1px border, left accent for epic color.
- * Hover: border transitions from light gray to black over 150ms.
+ * Enhancements: feedback type tags (#9), stale indicator (#10), comment count (#2).
  */
 
-import { EPICS, type FeedbackCard } from "@/lib/data";
-import { MessageSquare, AlertCircle, CheckCircle2 } from "lucide-react";
+import { EPICS, FEEDBACK_TAGS, isCardStale, type FeedbackCard } from "@/lib/data";
+import { MessageSquare, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 
 interface KanbanCardProps {
   card: FeedbackCard;
@@ -28,6 +27,7 @@ export default function KanbanCard({ card, onClick }: KanbanCardProps) {
     card.questionsRisks.length +
     card.suggestions.length;
   const hasDecision = !!card.decision;
+  const stale = isCardStale(card);
 
   return (
     <button
@@ -35,9 +35,21 @@ export default function KanbanCard({ card, onClick }: KanbanCardProps) {
       className="w-full text-left group"
     >
       <div
-        className="relative bg-card rounded-md border border-border p-4 transition-all duration-150 group-hover:border-foreground/40 group-hover:shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+        className={`relative bg-card rounded-md border p-4 transition-all duration-150 group-hover:border-foreground/40 group-hover:shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${
+          stale ? "border-destructive/40" : "border-border"
+        }`}
         style={{ borderLeftWidth: "3px", borderLeftColor: epic?.color }}
       >
+        {/* Stale indicator (#10) */}
+        {stale && (
+          <div className="flex items-center gap-1.5 mb-2 px-1.5 py-0.5 bg-destructive/8 rounded-sm w-fit">
+            <Clock size={10} strokeWidth={2} className="text-destructive" />
+            <span className="text-[9px] font-medium text-destructive uppercase tracking-wide">
+              Stale -- 5+ days
+            </span>
+          </div>
+        )}
+
         {/* Epic tag + Priority */}
         <div className="flex items-center justify-between mb-2.5">
           <span className="label-meta text-muted-foreground">
@@ -56,9 +68,27 @@ export default function KanbanCard({ card, onClick }: KanbanCardProps) {
         </h3>
 
         {/* Goal preview */}
-        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-3">
+        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2 mb-2">
           {card.goalOfShare}
         </p>
+
+        {/* Feedback type tags (#9) */}
+        {card.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {card.tags.map((tagId) => {
+              const tag = FEEDBACK_TAGS.find((t) => t.id === tagId);
+              if (!tag) return null;
+              return (
+                <span
+                  key={tagId}
+                  className="text-[9px] px-1.5 py-0.5 rounded-sm bg-secondary text-muted-foreground border border-border/60"
+                >
+                  {tag.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
 
         {/* Footer: metadata */}
         <div className="flex items-center gap-3 pt-2 border-t border-border/60">
@@ -78,6 +108,14 @@ export default function KanbanCard({ card, onClick }: KanbanCardProps) {
             <MessageSquare size={11} strokeWidth={1.5} />
             <span className="text-[10px]">{feedbackCount}</span>
           </div>
+
+          {/* Comment count (#2) */}
+          {card.comments.length > 0 && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <MessageSquare size={11} strokeWidth={1.5} className="fill-muted-foreground/20" />
+              <span className="text-[10px]">{card.comments.length}</span>
+            </div>
+          )}
 
           {/* Critical questions count */}
           {card.criticalQuestions.length > 0 && (
