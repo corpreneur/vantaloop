@@ -7,9 +7,12 @@
 
 import { EPICS, COLUMNS, FEEDBACK_TAGS, isCardStale, TEAM_MEMBERS, type FeedbackCard, type Comment } from "@/lib/data";
 import CommentThread from "@/components/CommentThread";
-import { X, CheckCircle2, Circle, AlertTriangle, Lightbulb, Target, Eye, Route, Gavel } from "lucide-react";
+import { X, CheckCircle2, Circle, AlertTriangle, Lightbulb, Target, Eye, Route, Gavel, Sparkles, Bot, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/useMobile";
+import { useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CardDetailProps {
   card: FeedbackCard | null;
@@ -19,6 +22,35 @@ interface CardDetailProps {
 
 export default function CardDetail({ card, onClose, onAddComment }: CardDetailProps) {
   const isMobile = useIsMobile();
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [summarizing, setSummarizing] = useState(false);
+
+  const handleSummarize = useCallback(async () => {
+    if (!card || card.comments.length === 0) {
+      toast("No comments to summarize.");
+      return;
+    }
+    setSummarizing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("summarize-comments", {
+        body: {
+          comments: card.comments.map((c) => ({
+            author: c.author.name,
+            text: c.text,
+            section: c.section || null,
+          })),
+        },
+      });
+      if (error) throw error;
+      setAiSummary(data.summary);
+    } catch (err: any) {
+      console.error("Summarize error:", err);
+      toast.error("Failed to generate summary.");
+    } finally {
+      setSummarizing(false);
+    }
+  }, [card]);
+
   if (!card) return null;
 
   const epic = EPICS.find((e) => e.id === card.epicId);
@@ -61,7 +93,6 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
                 <h2 className="font-display text-xl md:text-2xl text-foreground leading-tight">
                   {card.title}
                 </h2>
-                {/* Tags */}
                 {card.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {card.tags.map((tagId) => {
@@ -81,29 +112,19 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
                   </div>
                 )}
                 <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2">
-                  <span className="label-meta text-muted-foreground/60">
-                    {column?.title}
-                  </span>
+                  <span className="label-meta text-muted-foreground/60">{column?.title}</span>
                   <span className="text-muted-foreground/30">|</span>
-                  <span className="label-meta text-muted-foreground/60">
-                    {card.priority}
-                  </span>
+                  <span className="label-meta text-muted-foreground/60">{card.priority}</span>
                   <span className="text-muted-foreground/30">|</span>
-                  <span className="label-meta text-muted-foreground/60">
-                    {card.createdAt}
-                  </span>
+                  <span className="label-meta text-muted-foreground/60">{card.createdAt}</span>
                   {card.assignee && (
                     <>
                       <span className="text-muted-foreground/30">|</span>
                       <div className="flex items-center gap-1.5">
                         <div className="w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center">
-                          <span className="text-[8px] font-medium">
-                            {card.assignee.initials}
-                          </span>
+                          <span className="text-[8px] font-medium">{card.assignee.initials}</span>
                         </div>
-                        <span className="label-meta text-muted-foreground/60">
-                          {card.assignee.name}
-                        </span>
+                        <span className="label-meta text-muted-foreground/60">{card.assignee.name}</span>
                       </div>
                     </>
                   )}
@@ -120,31 +141,16 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
             {/* Content */}
             <div className="px-4 md:px-6 py-6 space-y-8">
               {/* Goal of this share */}
-              <Section
-                icon={<Target size={15} strokeWidth={1.5} />}
-                title="Goal of this share"
-                delay={0}
-              >
-                <p className="text-sm text-foreground leading-relaxed">
-                  {card.goalOfShare}
-                </p>
+              <Section icon={<Target size={15} strokeWidth={1.5} />} title="Goal of this share" delay={0}>
+                <p className="text-sm text-foreground leading-relaxed">{card.goalOfShare}</p>
               </Section>
 
               {/* What's working */}
-              <Section
-                icon={<CheckCircle2 size={15} strokeWidth={1.5} />}
-                title="What's working"
-                delay={0.05}
-              >
+              <Section icon={<CheckCircle2 size={15} strokeWidth={1.5} />} title="What's working" delay={0.05}>
                 <ul className="space-y-1.5">
                   {card.whatsWorking.map((item, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-foreground leading-relaxed"
-                    >
-                      <span className="text-muted-foreground/40 mt-1.5 shrink-0">
-                        --
-                      </span>
+                    <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                      <span className="text-muted-foreground/40 mt-1.5 shrink-0">--</span>
                       {item}
                     </li>
                   ))}
@@ -152,20 +158,11 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
               </Section>
 
               {/* Questions / Risks */}
-              <Section
-                icon={<AlertTriangle size={15} strokeWidth={1.5} />}
-                title="Questions / Risks"
-                delay={0.1}
-              >
+              <Section icon={<AlertTriangle size={15} strokeWidth={1.5} />} title="Questions / Risks" delay={0.1}>
                 <ul className="space-y-1.5">
                   {card.questionsRisks.map((item, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-foreground leading-relaxed"
-                    >
-                      <span className="text-muted-foreground/40 mt-1.5 shrink-0">
-                        --
-                      </span>
+                    <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                      <span className="text-muted-foreground/40 mt-1.5 shrink-0">--</span>
                       {item}
                     </li>
                   ))}
@@ -173,20 +170,11 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
               </Section>
 
               {/* Suggestions */}
-              <Section
-                icon={<Lightbulb size={15} strokeWidth={1.5} />}
-                title="Suggestions"
-                delay={0.15}
-              >
+              <Section icon={<Lightbulb size={15} strokeWidth={1.5} />} title="Suggestions" delay={0.15}>
                 <ul className="space-y-1.5">
                   {card.suggestions.map((item, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-foreground leading-relaxed"
-                    >
-                      <span className="text-muted-foreground/40 mt-1.5 shrink-0">
-                        --
-                      </span>
+                    <li key={i} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                      <span className="text-muted-foreground/40 mt-1.5 shrink-0">--</span>
                       {item}
                     </li>
                   ))}
@@ -194,62 +182,21 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
               </Section>
 
               {/* Decision needed */}
-              <Section
-                icon={<Target size={15} strokeWidth={1.5} />}
-                title="Decision needed today"
-                delay={0.2}
-              >
-                <p className="text-sm text-foreground font-medium">
-                  {card.decisionNeeded}
-                </p>
+              <Section icon={<Target size={15} strokeWidth={1.5} />} title="Decision needed today" delay={0.2}>
+                <p className="text-sm text-foreground font-medium">{card.decisionNeeded}</p>
               </Section>
 
-              {/* Divider */}
               <div className="border-t border-border" />
 
               {/* Critical questions */}
-              <Section
-                icon={<AlertTriangle size={15} strokeWidth={1.5} />}
-                title="Critical questions"
-                delay={0.25}
-              >
+              <Section icon={<AlertTriangle size={15} strokeWidth={1.5} />} title="Critical questions" delay={0.25}>
                 <div className="space-y-2">
-                  {(
-                    [
-                      "Is this the right problem?",
-                      "Which concept direction is strongest?",
-                      "What are the biggest risks?",
-                      "What should we prototype next?",
-                    ] as const
-                  ).map((q) => {
+                  {(["Is this the right problem?", "Which concept direction is strongest?", "What are the biggest risks?", "What should we prototype next?"] as const).map((q) => {
                     const isSelected = card.criticalQuestions.includes(q);
                     return (
-                      <div
-                        key={q}
-                        className="flex items-center gap-2.5"
-                      >
-                        {isSelected ? (
-                          <CheckCircle2
-                            size={14}
-                            strokeWidth={1.5}
-                            className="text-accent shrink-0"
-                          />
-                        ) : (
-                          <Circle
-                            size={14}
-                            strokeWidth={1.5}
-                            className="text-muted-foreground/30 shrink-0"
-                          />
-                        )}
-                        <span
-                          className={`text-sm ${
-                            isSelected
-                              ? "text-foreground"
-                              : "text-muted-foreground/40"
-                          }`}
-                        >
-                          {q}
-                        </span>
+                      <div key={q} className="flex items-center gap-2.5">
+                        {isSelected ? <CheckCircle2 size={14} strokeWidth={1.5} className="text-accent shrink-0" /> : <Circle size={14} strokeWidth={1.5} className="text-muted-foreground/30 shrink-0" />}
+                        <span className={`text-sm ${isSelected ? "text-foreground" : "text-muted-foreground/40"}`}>{q}</span>
                       </div>
                     );
                   })}
@@ -257,59 +204,34 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
               </Section>
 
               {/* Clarity + Value */}
-              <Section
-                icon={<Eye size={15} strokeWidth={1.5} />}
-                title="Clarity + Value"
-                delay={0.3}
-              >
+              <Section icon={<Eye size={15} strokeWidth={1.5} />} title="Clarity + Value" delay={0.3}>
                 <div className="space-y-3">
                   <FieldRow label="What's clear" value={card.whatsClear} />
-                  <FieldRow
-                    label="What's confusing"
-                    value={card.whatsConfusing}
-                  />
+                  <FieldRow label="What's confusing" value={card.whatsConfusing} />
                   <FieldRow label="The hook" value={card.hookValue} />
                 </div>
               </Section>
 
               {/* Flow at 10,000 feet */}
-              <Section
-                icon={<Route size={15} strokeWidth={1.5} />}
-                title="Flow at 10,000 feet"
-                delay={0.35}
-              >
+              <Section icon={<Route size={15} strokeWidth={1.5} />} title="Flow at 10,000 feet" delay={0.35}>
                 <div className="space-y-4">
                   <div>
-                    <p className="label-meta text-muted-foreground mb-2">
-                      Happy path
-                    </p>
+                    <p className="label-meta text-muted-foreground mb-2">Happy path</p>
                     <div className="space-y-1">
                       {card.happyPath.map((step, i) => (
-                        <div
-                          key={i}
-                          className="flex items-start gap-2.5 text-sm text-foreground"
-                        >
-                          <span className="label-meta text-muted-foreground/40 mt-0.5 w-4 text-right shrink-0">
-                            {i + 1}
-                          </span>
+                        <div key={i} className="flex items-start gap-2.5 text-sm text-foreground">
+                          <span className="label-meta text-muted-foreground/40 mt-0.5 w-4 text-right shrink-0">{i + 1}</span>
                           {step}
                         </div>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className="label-meta text-muted-foreground mb-2">
-                      Hesitation points
-                    </p>
+                    <p className="label-meta text-muted-foreground mb-2">Hesitation points</p>
                     <ul className="space-y-1">
                       {card.hesitationPoints.map((point, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-sm text-foreground"
-                        >
-                          <span className="text-muted-foreground/40 mt-1.5 shrink-0">
-                            --
-                          </span>
+                        <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                          <span className="text-muted-foreground/40 mt-1.5 shrink-0">--</span>
                           {point}
                         </li>
                       ))}
@@ -320,48 +242,14 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
 
               {/* Decision */}
               <div className="border-t border-border" />
-              <Section
-                icon={<Gavel size={15} strokeWidth={1.5} />}
-                title="Decision"
-                delay={0.4}
-              >
+              <Section icon={<Gavel size={15} strokeWidth={1.5} />} title="Decision" delay={0.4}>
                 <div className="space-y-3">
-                  {(
-                    [
-                      "Proceed with concept A",
-                      "Proceed with concept B",
-                      "Combine A + B",
-                      "Pause, redefine problem",
-                    ] as const
-                  ).map((d) => {
+                  {(["Proceed with concept A", "Proceed with concept B", "Combine A + B", "Pause, redefine problem"] as const).map((d) => {
                     const isSelected = card.decision === d;
                     return (
-                      <div
-                        key={d}
-                        className="flex items-center gap-2.5"
-                      >
-                        {isSelected ? (
-                          <CheckCircle2
-                            size={14}
-                            strokeWidth={1.5}
-                            className="text-accent shrink-0"
-                          />
-                        ) : (
-                          <Circle
-                            size={14}
-                            strokeWidth={1.5}
-                            className="text-muted-foreground/30 shrink-0"
-                          />
-                        )}
-                        <span
-                          className={`text-sm ${
-                            isSelected
-                              ? "text-foreground font-medium"
-                              : "text-muted-foreground/40"
-                          }`}
-                        >
-                          {d}
-                        </span>
+                      <div key={d} className="flex items-center gap-2.5">
+                        {isSelected ? <CheckCircle2 size={14} strokeWidth={1.5} className="text-accent shrink-0" /> : <Circle size={14} strokeWidth={1.5} className="text-muted-foreground/30 shrink-0" />}
+                        <span className={`text-sm ${isSelected ? "text-foreground font-medium" : "text-muted-foreground/40"}`}>{d}</span>
                       </div>
                     );
                   })}
@@ -369,27 +257,53 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
                   {card.decisionRationale && (
                     <div className="mt-3 p-3 bg-[oklch(0.96_0.03_55)] rounded-md border border-accent/20">
                       <p className="label-meta text-accent mb-1">Rationale</p>
-                      <p className="text-sm text-foreground leading-relaxed">
-                        {card.decisionRationale}
-                      </p>
+                      <p className="text-sm text-foreground leading-relaxed">{card.decisionRationale}</p>
                     </div>
                   )}
 
                   {!card.decision && (
-                    <p className="text-sm text-muted-foreground/50 italic">
-                      No decision recorded yet
-                    </p>
+                    <p className="text-sm text-muted-foreground/50 italic">No decision recorded yet</p>
                   )}
                 </div>
               </Section>
 
-              {/* Comments (#2) */}
+              {/* Comments */}
               <div className="border-t border-border" />
               <Section
                 icon={<span className="text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>}
                 title={`Comments (${card.comments.length})`}
                 delay={0.45}
+                action={
+                  card.comments.length > 0 ? (
+                    <button
+                      onClick={handleSummarize}
+                      disabled={summarizing}
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] text-accent hover:text-foreground border border-accent/30 hover:border-border rounded-md transition-colors disabled:opacity-50"
+                    >
+                      {summarizing ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                      Summarize
+                    </button>
+                  ) : null
+                }
               >
+                {/* AI Summary */}
+                <AnimatePresence>
+                  {aiSummary && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mb-4 p-3 bg-accent/5 border border-accent/20 rounded-md"
+                    >
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Bot size={12} className="text-accent" />
+                        <span className="text-[10px] font-medium text-accent">AI Summary</span>
+                      </div>
+                      <p className="text-sm text-foreground/80 leading-relaxed">{aiSummary}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <CommentThread
                   comments={card.comments}
                   onAddComment={(text) => onAddComment?.(card.id, text)}
@@ -410,11 +324,13 @@ function Section({
   title,
   delay,
   children,
+  action,
 }: {
   icon: React.ReactNode;
   title: string;
   delay: number;
   children: React.ReactNode;
+  action?: React.ReactNode;
 }) {
   return (
     <motion.div
@@ -425,6 +341,7 @@ function Section({
       <div className="flex items-center gap-2 mb-3">
         <span className="text-muted-foreground">{icon}</span>
         <h3 className="label-meta text-foreground">{title}</h3>
+        {action && <div className="ml-auto">{action}</div>}
       </div>
       {children}
     </motion.div>
