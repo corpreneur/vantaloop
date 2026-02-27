@@ -7,7 +7,8 @@
 import { EPICS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
 import { LayoutGrid, Clock, Gavel, Bot, Filter, ChevronDown, ChevronRight, Inbox, PenLine, LogOut } from "lucide-react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import vantaLogo from "@/assets/vanta-logo.jpg";
 
@@ -36,6 +37,25 @@ export function SidebarContent({
   onNavigate,
 }: SidebarProps) {
   const [epicsOpen, setEpicsOpen] = useState(false);
+  const [newCount, setNewCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      const { count } = await supabase
+        .from("intake_items")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "new");
+      setNewCount(count ?? 0);
+    };
+    fetchCount();
+
+    const channel = supabase
+      .channel("intake-new-count")
+      .on("postgres_changes", { event: "*", schema: "public", table: "intake_items" }, () => fetchCount())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const handleViewChange = (v: ViewId) => {
     onChangeView(v);
@@ -64,7 +84,12 @@ export function SidebarContent({
           className="flex items-center gap-2.5 px-2 py-2.5 rounded-md w-full text-left text-foreground font-semibold bg-secondary/60 hover:bg-secondary transition-colors duration-150"
         >
           <Inbox size={16} strokeWidth={2} />
-          <span className="text-sm">Intake Triage</span>
+          <span className="text-sm flex-1">Intake Triage</span>
+          {newCount > 0 && (
+            <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-[11px] font-semibold flex items-center justify-center">
+              {newCount > 99 ? "99+" : newCount}
+            </span>
+          )}
         </Link>
 
         {VIEWS.map((view) => {
