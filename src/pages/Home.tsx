@@ -155,7 +155,7 @@ export default function Home() {
                   <Menu size={20} strokeWidth={1.5} />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px] [&>button]:hidden">
+              <SheetContent side="left" className="p-0 w-[280px] [&>button]:hidden bg-sidebar z-[60]">
                 <SheetTitle className="sr-only">Navigation</SheetTitle>
                 <SidebarContent {...sidebarProps} />
               </SheetContent>
