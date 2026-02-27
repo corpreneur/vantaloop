@@ -42,10 +42,10 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 40 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-full md:max-w-[640px] bg-background border-l border-border z-50 overflow-y-auto"
+            className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 md:w-full md:max-w-[640px] bg-background md:border-l border-border z-50 overflow-y-auto"
           >
             {/* Header */}
-            <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-start justify-between z-10">
+            <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border px-4 md:px-6 py-4 flex items-start justify-between z-10">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span
@@ -56,7 +56,7 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
                     {epic?.id} / {epic?.name}
                   </span>
                 </div>
-                <h2 className="font-display text-2xl text-foreground leading-tight">
+                <h2 className="font-display text-xl md:text-2xl text-foreground leading-tight">
                   {card.title}
                 </h2>
                 {/* Tags */}
@@ -78,7 +78,7 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
                     <span className="text-[9px] font-medium uppercase tracking-wide">Stale -- needs attention</span>
                   </div>
                 )}
-                <div className="flex items-center gap-3 mt-2">
+                <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-2">
                   <span className="label-meta text-muted-foreground/60">
                     {column?.title}
                   </span>
@@ -116,7 +116,7 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
             </div>
 
             {/* Content */}
-            <div className="px-6 py-6 space-y-8">
+            <div className="px-4 md:px-6 py-6 space-y-8">
               {/* Goal of this share */}
               <Section
                 icon={<Target size={15} strokeWidth={1.5} />}
