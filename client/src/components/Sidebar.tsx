@@ -35,7 +35,7 @@ export function SidebarContent({
   onClearFilters,
   onNavigate,
 }: SidebarProps) {
-  const [epicsOpen, setEpicsOpen] = useState(true);
+  const [epicsOpen, setEpicsOpen] = useState(false);
   const [teamOpen, setTeamOpen] = useState(true);
 
   const handleViewChange = (v: ViewId) => {
@@ -86,6 +86,44 @@ export function SidebarContent({
           );
         })}
 
+        {/* Team section */}
+        <div className="pt-4">
+          <button
+            onClick={() => setTeamOpen(!teamOpen)}
+            className="flex items-center gap-1.5 px-2 py-1 w-full text-left"
+          >
+            {teamOpen ? (
+              <ChevronDown size={12} className="text-muted-foreground" />
+            ) : (
+              <ChevronRight size={12} className="text-muted-foreground" />
+            )}
+            <span className="label-meta text-muted-foreground">Team</span>
+          </button>
+
+          {teamOpen && (
+            <div className="mt-1 space-y-0.5">
+              {TEAM_MEMBERS.map((member) => (
+                <div
+                  key={member.name}
+                  className="flex items-center gap-2.5 px-2 py-1.5"
+                >
+                  <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-medium">
+                      {member.initials}
+                    </span>
+                  </div>
+                  <span className="text-sm text-muted-foreground truncate">
+                    {member.name}
+                  </span>
+                  <span className="label-meta text-muted-foreground/60 ml-auto text-[9px]">
+                    {member.team}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Epics section */}
         <div className="pt-4">
           <button
@@ -122,44 +160,6 @@ export function SidebarContent({
                   </button>
                 );
               })}
-            </div>
-          )}
-        </div>
-
-        {/* Team section */}
-        <div className="pt-4">
-          <button
-            onClick={() => setTeamOpen(!teamOpen)}
-            className="flex items-center gap-1.5 px-2 py-1 w-full text-left"
-          >
-            {teamOpen ? (
-              <ChevronDown size={12} className="text-muted-foreground" />
-            ) : (
-              <ChevronRight size={12} className="text-muted-foreground" />
-            )}
-            <span className="label-meta text-muted-foreground">Team</span>
-          </button>
-
-          {teamOpen && (
-            <div className="mt-1 space-y-0.5">
-              {TEAM_MEMBERS.map((member) => (
-                <div
-                  key={member.name}
-                  className="flex items-center gap-2.5 px-2 py-1.5"
-                >
-                  <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-medium">
-                      {member.initials}
-                    </span>
-                  </div>
-                  <span className="text-sm text-muted-foreground truncate">
-                    {member.name}
-                  </span>
-                  <span className="label-meta text-muted-foreground/60 ml-auto text-[9px]">
-                    {member.team}
-                  </span>
-                </div>
-              ))}
             </div>
           )}
         </div>
