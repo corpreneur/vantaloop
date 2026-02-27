@@ -2,10 +2,11 @@
  * Design: "Clean Slate" -- Monochrome Workspace with Warm Accents
  * Main page: Sidebar + dynamic view (Board / Timeline / Decision Log / Digest).
  * Now connected to Supabase for real data persistence.
+ * Mobile responsive with sheet sidebar.
  */
 
 import { useState, useCallback, useMemo } from "react";
-import Sidebar from "@/components/Sidebar";
+import Sidebar, { SidebarContent } from "@/components/Sidebar";
 import KanbanBoard from "@/components/KanbanBoard";
 import CardDetail from "@/components/CardDetail";
 import FilterBar from "@/components/FilterBar";
@@ -21,16 +22,17 @@ import {
   type EpicId,
   type ViewId,
   type Priority,
-  type Comment,
 } from "@/lib/data";
 import type { NewCardData } from "@/components/NewCardDialog";
-import { Search, Plus, Loader2 } from "lucide-react";
+import { Search, Plus, Loader2, Menu } from "lucide-react";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/useMobile";
 
 export default function Home() {
   const { cards: dbCards, loading, refetch, insertCard, addComment } = useRegisterCards();
+  const isMobile = useIsMobile();
 
-  // Fall back to mock data if DB is empty
   const cards = dbCards.length > 0 ? dbCards : (loading ? [] : INITIAL_CARDS);
 
   const [activeView, setActiveView] = useState<ViewId>("board");
@@ -40,13 +42,11 @@ export default function Home() {
   const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null);
   const [showNewCard, setShowNewCard] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Handlers
   const handleToggleEpic = useCallback((epicId: EpicId) => {
     setSelectedEpics((prev) =>
-      prev.includes(epicId)
-        ? prev.filter((id) => id !== epicId)
-        : [...prev, epicId]
+      prev.includes(epicId) ? prev.filter((id) => id !== epicId) : [...prev, epicId]
     );
   }, []);
 
@@ -104,15 +104,12 @@ export default function Home() {
     }
   }, [insertCard]);
 
-  // Filtered cards
   const filteredCards = useMemo(() => {
     let result = cards;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
-        (c) =>
-          c.title.toLowerCase().includes(q) ||
-          c.goalOfShare.toLowerCase().includes(q)
+        (c) => c.title.toLowerCase().includes(q) || c.goalOfShare.toLowerCase().includes(q)
       );
     }
     if (selectedEpics.length > 0) {
@@ -134,30 +131,46 @@ export default function Home() {
     digest: "Weekly Digest",
   };
 
+  const sidebarProps = {
+    activeView,
+    onChangeView: setActiveView,
+    selectedEpics,
+    onToggleEpic: handleToggleEpic,
+    onClearFilters: handleClearFilters,
+    onNavigate: () => setSidebarOpen(false),
+  };
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar
-        activeView={activeView}
-        onChangeView={setActiveView}
-        selectedEpics={selectedEpics}
-        onToggleEpic={handleToggleEpic}
-        onClearFilters={handleClearFilters}
-      />
+      {/* Desktop sidebar */}
+      <Sidebar {...sidebarProps} />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="shrink-0 border-b border-border px-6 py-3 flex items-center justify-between bg-background">
-          <div className="flex items-center gap-4">
-            <h2 className="font-display text-lg text-foreground">
+        <header className="shrink-0 border-b border-border px-4 md:px-6 py-3 flex items-center justify-between bg-background gap-2">
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
+            {/* Mobile menu button */}
+            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+              <SheetTrigger asChild>
+                <button className="md:hidden p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
+                  <Menu size={20} strokeWidth={1.5} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-[280px]">
+                <SidebarContent {...sidebarProps} />
+              </SheetContent>
+            </Sheet>
+
+            <h2 className="font-display text-lg text-foreground truncate">
               {viewTitles[activeView]}
             </h2>
-            <div className="flex items-center gap-1.5 text-muted-foreground/40">
+            <div className="hidden sm:flex items-center gap-1.5 text-muted-foreground/40">
               <span className="label-meta">{filteredCards.length} items</span>
             </div>
             {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="relative">
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
+            <div className="relative hidden sm:block">
               <Search
                 size={14}
                 strokeWidth={1.5}
@@ -168,7 +181,7 @@ export default function Home() {
                 placeholder="Search cards..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8 pr-3 py-1.5 text-sm bg-secondary border border-border rounded-md text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-accent/40 focus:border-accent/40 w-56 transition-colors duration-150"
+                className="pl-8 pr-3 py-1.5 text-sm bg-secondary border border-border rounded-md text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-accent/40 focus:border-accent/40 w-44 md:w-56 transition-colors duration-150"
               />
             </div>
 
@@ -177,13 +190,31 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-foreground text-background rounded-md hover:bg-foreground/90 transition-colors duration-150"
             >
               <Plus size={14} strokeWidth={2} />
-              New Card
+              <span className="hidden sm:inline">New Card</span>
             </button>
           </div>
         </header>
 
+        {/* Mobile search bar */}
+        <div className="sm:hidden shrink-0 border-b border-border/60 px-4 py-2 bg-background">
+          <div className="relative">
+            <Search
+              size={14}
+              strokeWidth={1.5}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/40"
+            />
+            <input
+              type="text"
+              placeholder="Search cards..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-sm bg-secondary border border-border rounded-md text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-accent/40 focus:border-accent/40 w-full transition-colors duration-150"
+            />
+          </div>
+        </div>
+
         {(activeView === "board" || activeView === "timeline") && (
-          <div className="shrink-0 border-b border-border/60 px-6 py-2 bg-background">
+          <div className="shrink-0 border-b border-border/60 px-4 md:px-6 py-2 bg-background">
             <FilterBar
               selectedPriorities={selectedPriorities}
               onTogglePriority={handleTogglePriority}
@@ -194,11 +225,7 @@ export default function Home() {
         )}
 
         {activeView === "board" && (
-          <KanbanBoard
-            cards={filteredCards}
-            selectedEpics={selectedEpics}
-            onCardClick={handleCardClick}
-          />
+          <KanbanBoard cards={filteredCards} selectedEpics={selectedEpics} onCardClick={handleCardClick} />
         )}
         {activeView === "timeline" && (
           <TimelineView cards={filteredCards} onCardClick={handleCardClick} />
@@ -209,17 +236,9 @@ export default function Home() {
         {activeView === "digest" && <WeeklyDigestView />}
       </div>
 
-      <CardDetail
-        card={selectedCard}
-        onClose={handleCloseDetail}
-        onAddComment={handleAddComment}
-      />
+      <CardDetail card={selectedCard} onClose={handleCloseDetail} onAddComment={handleAddComment} />
 
-      <NewCardDialog
-        open={showNewCard}
-        onClose={() => setShowNewCard(false)}
-        onSubmit={handleNewCard}
-      />
+      <NewCardDialog open={showNewCard} onClose={() => setShowNewCard(false)} onSubmit={handleNewCard} />
     </div>
   );
 }

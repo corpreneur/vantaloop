@@ -42,7 +42,7 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 40 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-[640px] bg-background border-l border-border z-50 overflow-y-auto"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-full md:max-w-[640px] bg-background border-l border-border z-50 overflow-y-auto"
           >
             {/* Header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border px-6 py-4 flex items-start justify-between z-10">

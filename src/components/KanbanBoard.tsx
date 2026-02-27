@@ -25,7 +25,7 @@ export default function KanbanBoard({
 
   return (
     <div className="flex-1 overflow-x-auto">
-      <div className="flex gap-4 p-6 h-full min-h-0">
+      <div className="flex gap-4 p-4 md:p-6 h-full min-h-0">
         {COLUMNS.map((column) => {
           const columnCards = filteredCards.filter(
             (c) => c.columnId === column.id
