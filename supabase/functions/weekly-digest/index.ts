@@ -26,6 +26,18 @@ serve(async (req) => {
 
     if (error) throw error;
 
+    // Fetch all comments grouped by register_id
+    const { data: comments } = await sb
+      .from("comments")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const commentsByRegister: Record<string, any[]> = {};
+    (comments || []).forEach((c: any) => {
+      if (!commentsByRegister[c.register_id]) commentsByRegister[c.register_id] = [];
+      commentsByRegister[c.register_id].push(c);
+    });
+
     if (!items || items.length === 0) {
       return new Response(
         JSON.stringify({
@@ -34,6 +46,10 @@ serve(async (req) => {
           decisionsThisWeek: [],
           openItems: [],
           staleItems: [],
+          themes: [],
+          sentiment: null,
+          recommendedActions: [],
+          teamDynamics: null,
           weekOf: new Date().toISOString().split("T")[0],
           generatedAt: new Date().toISOString(),
         }),
@@ -41,12 +57,16 @@ serve(async (req) => {
       );
     }
 
-    // Build a prompt from the data
+    // Build enriched prompt with comment data
     const itemSummaries = items.map((i: any) => {
-      return `- "${i.title}" (${i.column_id}, ${i.priority}, epic: ${i.epic_id || "none"}): Goal: ${i.goal_of_share || "N/A"}. Decision needed: ${i.decision_needed || "N/A"}. Decision: ${i.decision || "pending"}. Updated: ${i.updated_at}`;
+      const itemComments = commentsByRegister[i.id] || [];
+      const commentSnippet = itemComments.length > 0
+        ? ` Comments (${itemComments.length}): ${itemComments.slice(0, 3).map((c: any) => `${c.author_name}: "${c.text.slice(0, 80)}"`).join("; ")}`
+        : "";
+      return `- "${i.title}" (${i.column_id}, ${i.priority}, epic: ${i.epic_id || "none"}): Goal: ${i.goal_of_share || "N/A"}. Decision needed: ${i.decision_needed || "N/A"}. Decision: ${i.decision || "pending"}. Updated: ${i.updated_at}.${commentSnippet}`;
     });
 
-    const prompt = `You are a design operations analyst. Analyze these feedback register items and generate a weekly digest.
+    const prompt = `You are a design operations analyst. Analyze these feedback register items and their discussion threads to generate a comprehensive weekly digest.
 
 Items:
 ${itemSummaries.join("\n")}
@@ -59,6 +79,10 @@ Generate a JSON response with these fields:
 - decisionsThisWeek: Array of strings describing decisions made (items in "decision-made" column with a decision)
 - openItems: Array of strings describing open items awaiting action
 - staleItems: Array of strings describing items that haven't moved in 5+ days
+- themes: Array of strings identifying 2-4 recurring themes across feedback items and discussions
+- sentiment: Object with { overall: "positive"|"neutral"|"cautious"|"concerned", detail: string } analyzing team sentiment
+- recommendedActions: Array of strings with 3-5 prioritized next steps for the team
+- teamDynamics: String summarizing cross-team collaboration patterns observed in the comments
 
 Return ONLY valid JSON, no markdown.`;
 
@@ -74,13 +98,13 @@ Return ONLY valid JSON, no markdown.`;
             .filter((i: any) => i.column_id === "decision-made" && i.decision)
             .map((i: any) => `${i.title}: ${i.decision}`),
           openItems: items
-            .filter(
-              (i: any) =>
-                i.column_id !== "decision-made" &&
-                i.column_id !== "archived"
-            )
+            .filter((i: any) => i.column_id !== "decision-made" && i.column_id !== "archived")
             .map((i: any) => `${i.title} -- ${i.decision_needed || "pending"}`),
           staleItems: [],
+          themes: [],
+          sentiment: null,
+          recommendedActions: [],
+          teamDynamics: null,
           weekOf: new Date().toISOString().split("T")[0],
           generatedAt: new Date().toISOString(),
         }),
@@ -98,7 +122,7 @@ Return ONLY valid JSON, no markdown.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: "You are a design operations analyst. Return only valid JSON." },
             { role: "user", content: prompt },
@@ -110,20 +134,17 @@ Return ONLY valid JSON, no markdown.`;
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       console.error("AI error:", aiResp.status, errText);
-      // Fallback to non-AI digest
       return new Response(
         JSON.stringify({
           summary: `This week the register contains ${items.length} items. AI summary unavailable.`,
-          newConcepts: items
-            .filter((i: any) => i.column_id === "new-concept")
-            .map((i: any) => `${i.title} (${i.priority})`),
-          decisionsThisWeek: items
-            .filter((i: any) => i.decision)
-            .map((i: any) => `${i.title}: ${i.decision}`),
-          openItems: items
-            .filter((i: any) => !i.decision && i.column_id !== "archived")
-            .map((i: any) => `${i.title} -- ${i.decision_needed || "pending"}`),
+          newConcepts: items.filter((i: any) => i.column_id === "new-concept").map((i: any) => `${i.title} (${i.priority})`),
+          decisionsThisWeek: items.filter((i: any) => i.decision).map((i: any) => `${i.title}: ${i.decision}`),
+          openItems: items.filter((i: any) => !i.decision && i.column_id !== "archived").map((i: any) => `${i.title} -- ${i.decision_needed || "pending"}`),
           staleItems: [],
+          themes: [],
+          sentiment: null,
+          recommendedActions: [],
+          teamDynamics: null,
           weekOf: new Date().toISOString().split("T")[0],
           generatedAt: new Date().toISOString(),
         }),
@@ -134,7 +155,6 @@ Return ONLY valid JSON, no markdown.`;
     const aiData = await aiResp.json();
     const content = aiData.choices?.[0]?.message?.content || "{}";
 
-    // Parse AI response (strip markdown fences if present)
     let digest;
     try {
       const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -146,6 +166,10 @@ Return ONLY valid JSON, no markdown.`;
         decisionsThisWeek: [],
         openItems: [],
         staleItems: [],
+        themes: [],
+        sentiment: null,
+        recommendedActions: [],
+        teamDynamics: null,
       };
     }
 
