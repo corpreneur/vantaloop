@@ -20,7 +20,7 @@ export default function KanbanColumn({
   onCardClick,
 }: KanbanColumnProps) {
   return (
-    <div className="w-[300px] shrink-0 flex flex-col h-full">
+    <div className="w-[260px] md:w-[300px] shrink-0 flex flex-col h-full">
       {/* Column header */}
       <div className="px-2 pb-3 border-b border-foreground/10 mb-3">
         <div className="flex items-center justify-between">

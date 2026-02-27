@@ -1,8 +1,7 @@
 /*
  * Design: "Clean Slate" -- Monochrome Workspace with Warm Accents
  * Persistent sidebar with view navigation, epic filters, and team members.
- * Typography: Instrument Serif for section headers, Satoshi for body.
- * Color: B/W with muted copper accent for selected states.
+ * Mobile: rendered inside a Sheet overlay.
  */
 
 import { EPICS, TEAM_MEMBERS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
@@ -23,20 +22,27 @@ interface SidebarProps {
   selectedEpics: EpicId[];
   onToggleEpic: (epicId: EpicId) => void;
   onClearFilters: () => void;
+  onNavigate?: () => void; // called after view change on mobile to close drawer
 }
 
-export default function Sidebar({
+export function SidebarContent({
   activeView,
   onChangeView,
   selectedEpics,
   onToggleEpic,
   onClearFilters,
+  onNavigate,
 }: SidebarProps) {
   const [epicsOpen, setEpicsOpen] = useState(true);
   const [teamOpen, setTeamOpen] = useState(true);
 
+  const handleViewChange = (v: ViewId) => {
+    onChangeView(v);
+    onNavigate?.();
+  };
+
   return (
-    <aside className="w-[260px] shrink-0 border-r border-border bg-sidebar h-screen sticky top-0 flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-5 pt-6 pb-4 border-b border-border">
         <h1 className="font-display text-xl tracking-tight text-foreground leading-tight">
@@ -49,13 +55,12 @@ export default function Sidebar({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {/* Views */}
         {VIEWS.map((view) => {
           const active = activeView === view.id;
           return (
             <button
               key={view.id}
-              onClick={() => onChangeView(view.id)}
+              onClick={() => handleViewChange(view.id)}
               className={`flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left transition-colors duration-150 ${
                 active
                   ? "bg-secondary text-foreground"
@@ -175,6 +180,14 @@ export default function Sidebar({
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+export default function Sidebar(props: SidebarProps) {
+  return (
+    <aside className="hidden md:flex w-[260px] shrink-0 border-r border-border bg-sidebar h-screen sticky top-0 flex-col">
+      <SidebarContent {...props} />
     </aside>
   );
 }
