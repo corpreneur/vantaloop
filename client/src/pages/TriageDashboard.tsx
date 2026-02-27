@@ -8,6 +8,7 @@ import {
   XCircle, Loader2, ArrowLeft, ArrowUpRight, FileText
 } from "lucide-react";
 import DigestExport from "@/components/DigestExport";
+import { useRole } from "@/hooks/useRole";
 
 type IntakeStatus = "new" | "triaged" | "promoted" | "dismissed";
 
@@ -63,6 +64,7 @@ type IntakeItem = {
 };
 
 export default function TriageDashboard() {
+  const { isAdmin } = useRole();
   const [items, setItems] = useState<IntakeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<IntakeStatus | "all">("all");
@@ -352,8 +354,8 @@ export default function TriageDashboard() {
                   )}
                 </div>
 
-                {/* Triage actions */}
-                {selectedItem.status === "new" && (
+                {/* Triage actions - admin only */}
+                {isAdmin && selectedItem.status === "new" && (
                   <div className="space-y-3 pt-3 border-t border-border/60">
                     <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Triage Actions</h4>
                     <textarea

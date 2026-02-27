@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import vantaLogo from "@/assets/vanta-logo.jpg";
 
 const VIEW_ICONS: Record<ViewId, React.ReactNode> = {
@@ -178,6 +179,7 @@ export function SidebarContent({
 
 function SidebarHeader() {
   const { user } = useAuth();
+  const { isAdmin } = useRole();
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] 
     || user?.email?.split("@")[0] 
     || null;
@@ -186,9 +188,16 @@ function SidebarHeader() {
     <div className="px-5 pt-6 pb-4 border-b border-border">
       <img src={vantaLogo} alt="Vanta Wireless" className="h-7 mb-2" />
       {firstName ? (
-        <p className="text-sm text-muted-foreground mt-1">
-          Welcome back, <span className="text-foreground font-medium">{firstName}</span>
-        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <p className="text-sm text-muted-foreground">
+            Welcome back, <span className="text-foreground font-medium">{firstName}</span>
+          </p>
+          {isAdmin && (
+            <span className="px-1.5 py-0.5 text-[9px] uppercase tracking-wider font-semibold rounded bg-foreground text-background">
+              Admin
+            </span>
+          )}
+        </div>
       ) : (
         <p className="label-meta text-muted-foreground mt-1">
           Design Feedback Board
