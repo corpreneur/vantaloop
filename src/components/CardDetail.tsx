@@ -9,6 +9,7 @@ import { EPICS, COLUMNS, FEEDBACK_TAGS, isCardStale, TEAM_MEMBERS, type Feedback
 import CommentThread from "@/components/CommentThread";
 import { X, CheckCircle2, Circle, AlertTriangle, Lightbulb, Target, Eye, Route, Gavel } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/useMobile";
 
 interface CardDetailProps {
   card: FeedbackCard | null;
@@ -17,6 +18,7 @@ interface CardDetailProps {
 }
 
 export default function CardDetail({ card, onClose, onAddComment }: CardDetailProps) {
+  const isMobile = useIsMobile();
   if (!card) return null;
 
   const epic = EPICS.find((e) => e.id === card.epicId);
@@ -32,17 +34,17 @@ export default function CardDetail({ card, onClose, onAddComment }: CardDetailPr
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 bg-black/20 z-40"
+            className="fixed inset-0 bg-black/50 md:bg-black/20 z-[60]"
             onClick={onClose}
           />
 
           {/* Panel */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: isMobile ? 0 : 40, y: isMobile ? 20 : 0 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, x: isMobile ? 0 : 40, y: isMobile ? 20 : 0 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 md:w-full md:max-w-[640px] bg-background md:border-l border-border z-50 overflow-y-auto"
+            className="fixed inset-0 md:inset-auto md:right-0 md:top-0 md:bottom-0 md:w-full md:max-w-[640px] bg-background md:border-l border-border z-[70] overflow-y-auto"
           >
             {/* Header */}
             <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border px-4 md:px-6 py-4 flex items-start justify-between z-10">
