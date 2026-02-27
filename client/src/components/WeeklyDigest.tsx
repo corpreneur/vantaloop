@@ -7,7 +7,7 @@ import { Bot, Headphones, Hash, Clock, CheckCircle2, AlertTriangle, Plus, Play, 
 import { motion } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { supabase } from "../../../src/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DigestData {
   weekOf: string;
