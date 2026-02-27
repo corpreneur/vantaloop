@@ -1,18 +1,46 @@
 /*
  * Design: "Clean Slate" -- Monochrome Workspace with Warm Accents
- * Weekly Digest view (#5, #6, #7).
- * Shows AI-generated weekly summary, podcast player, and Slack notifications.
+ * Weekly Digest view -- fetches AI-generated summary from edge function.
  */
 
-import { MOCK_DIGEST, MOCK_SLACK_NOTIFICATIONS } from "@/lib/data";
-import { Bot, Headphones, Hash, Clock, CheckCircle2, AlertTriangle, Plus, Play, Pause } from "lucide-react";
+import { Bot, Headphones, Hash, Clock, CheckCircle2, AlertTriangle, Plus, Play, Pause, Loader2, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { supabase } from "../../../src/integrations/supabase/client";
+
+interface DigestData {
+  weekOf: string;
+  generatedAt: string;
+  summary: string;
+  newConcepts: string[];
+  decisionsThisWeek: string[];
+  openItems: string[];
+  staleItems: string[];
+}
 
 export default function WeeklyDigestView() {
-  const d = MOCK_DIGEST;
+  const [digest, setDigest] = useState<DigestData | null>(null);
+  const [loading, setLoading] = useState(false);
   const [playing, setPlaying] = useState(false);
+
+  const fetchDigest = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("weekly-digest");
+      if (error) throw error;
+      setDigest(data as DigestData);
+    } catch (err: any) {
+      console.error("Digest fetch error:", err);
+      toast.error("Failed to generate digest.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchDigest();
+  }, [fetchDigest]);
 
   const formatDate = (ds: string) =>
     new Date(ds + "T00:00:00").toLocaleDateString("en-US", {
@@ -31,15 +59,53 @@ export default function WeeklyDigestView() {
     );
   };
 
+  if (loading && !digest) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
+          <p className="text-sm text-muted-foreground">Generating weekly digest...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!digest) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Bot className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+          <p className="text-sm text-muted-foreground">No digest available.</p>
+          <button
+            onClick={fetchDigest}
+            className="text-sm text-accent hover:text-foreground transition-colors"
+          >
+            Generate now
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
-        <div>
-          <h2 className="font-display text-2xl text-foreground mb-1">Weekly Digest</h2>
-          <p className="text-sm text-muted-foreground">
-            AI-generated summary for the week of {formatDate(d.weekOf)}.
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="font-display text-2xl text-foreground mb-1">Weekly Digest</h2>
+            <p className="text-sm text-muted-foreground">
+              AI-generated summary for the week of {formatDate(digest.weekOf)}.
+            </p>
+          </div>
+          <button
+            onClick={fetchDigest}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground border border-border rounded-md transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+            Regenerate
+          </button>
         </div>
 
         {/* AI Summary Card */}
@@ -55,13 +121,13 @@ export default function WeeklyDigestView() {
             </div>
             <span className="label-meta text-foreground">AI Summary</span>
             <span className="text-[10px] text-muted-foreground/40 ml-auto">
-              Generated {formatTs(d.generatedAt)}
+              Generated {formatTs(digest.generatedAt)}
             </span>
           </div>
-          <p className="text-sm text-foreground/80 leading-relaxed">{d.summary}</p>
+          <p className="text-sm text-foreground/80 leading-relaxed">{digest.summary}</p>
         </motion.div>
 
-        {/* Podcast Player (#6) */}
+        {/* Podcast Player */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -90,7 +156,6 @@ export default function WeeklyDigestView() {
               <p className="text-[11px] text-background/50">
                 3:42 -- AI-generated audio briefing of this week's design feedback activity.
               </p>
-              {/* Simulated waveform */}
               <div className="flex items-end gap-[2px] mt-2 h-4">
                 {Array.from({ length: 48 }).map((_, i) => {
                   const h = Math.max(3, Math.sin(i * 0.4) * 12 + Math.random() * 6);
@@ -121,14 +186,17 @@ export default function WeeklyDigestView() {
             <div className="flex items-center gap-2 mb-3">
               <Plus size={13} strokeWidth={1.5} className="text-foreground" />
               <span className="label-meta text-foreground">New Concepts</span>
-              <span className="text-[10px] text-muted-foreground/40 ml-auto">{d.newConcepts.length}</span>
+              <span className="text-[10px] text-muted-foreground/40 ml-auto">{digest.newConcepts.length}</span>
             </div>
             <ul className="space-y-2">
-              {d.newConcepts.map((c, i) => (
+              {digest.newConcepts.map((c, i) => (
                 <li key={i} className="text-sm text-foreground/80 leading-relaxed pl-3 border-l-2 border-accent/30">
                   {c}
                 </li>
               ))}
+              {digest.newConcepts.length === 0 && (
+                <li className="text-sm text-muted-foreground/40 italic">None this week</li>
+              )}
             </ul>
           </motion.div>
 
@@ -142,14 +210,17 @@ export default function WeeklyDigestView() {
             <div className="flex items-center gap-2 mb-3">
               <CheckCircle2 size={13} strokeWidth={1.5} className="text-accent" />
               <span className="label-meta text-foreground">Decisions This Week</span>
-              <span className="text-[10px] text-muted-foreground/40 ml-auto">{d.decisionsThisWeek.length}</span>
+              <span className="text-[10px] text-muted-foreground/40 ml-auto">{digest.decisionsThisWeek.length}</span>
             </div>
             <ul className="space-y-2">
-              {d.decisionsThisWeek.map((c, i) => (
+              {digest.decisionsThisWeek.map((c, i) => (
                 <li key={i} className="text-sm text-foreground/80 leading-relaxed pl-3 border-l-2 border-foreground/20">
                   {c}
                 </li>
               ))}
+              {digest.decisionsThisWeek.length === 0 && (
+                <li className="text-sm text-muted-foreground/40 italic">None this week</li>
+              )}
             </ul>
           </motion.div>
 
@@ -163,14 +234,17 @@ export default function WeeklyDigestView() {
             <div className="flex items-center gap-2 mb-3">
               <Clock size={13} strokeWidth={1.5} className="text-muted-foreground" />
               <span className="label-meta text-foreground">Open Items</span>
-              <span className="text-[10px] text-muted-foreground/40 ml-auto">{d.openItems.length}</span>
+              <span className="text-[10px] text-muted-foreground/40 ml-auto">{digest.openItems.length}</span>
             </div>
             <ul className="space-y-2">
-              {d.openItems.map((c, i) => (
+              {digest.openItems.map((c, i) => (
                 <li key={i} className="text-sm text-muted-foreground leading-relaxed pl-3 border-l-2 border-border">
                   {c}
                 </li>
               ))}
+              {digest.openItems.length === 0 && (
+                <li className="text-sm text-muted-foreground/40 italic">All clear</li>
+              )}
             </ul>
           </motion.div>
 
@@ -184,40 +258,20 @@ export default function WeeklyDigestView() {
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle size={13} strokeWidth={1.5} className="text-destructive" />
               <span className="label-meta text-foreground">Stale Items</span>
-              <span className="text-[10px] text-destructive ml-auto">{d.staleItems.length}</span>
+              <span className="text-[10px] text-destructive ml-auto">{digest.staleItems.length}</span>
             </div>
             <ul className="space-y-2">
-              {d.staleItems.map((c, i) => (
+              {digest.staleItems.map((c, i) => (
                 <li key={i} className="text-sm text-destructive/80 leading-relaxed pl-3 border-l-2 border-destructive/30">
                   {c}
                 </li>
               ))}
+              {digest.staleItems.length === 0 && (
+                <li className="text-sm text-muted-foreground/40 italic">No stale items</li>
+              )}
             </ul>
           </motion.div>
         </div>
-
-        {/* Slack Notifications (#7) */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.35 }}
-          className="bg-card border border-border rounded-md p-5"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Hash size={13} strokeWidth={1.5} className="text-foreground" />
-            <span className="label-meta text-foreground">Slack Notifications</span>
-            <span className="text-[10px] text-muted-foreground/40">#{MOCK_SLACK_NOTIFICATIONS[0]?.channel.replace("#", "")}</span>
-          </div>
-          <div className="space-y-2">
-            {MOCK_SLACK_NOTIFICATIONS.map((n, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm">
-                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${n.delivered ? "bg-green-500" : "bg-muted-foreground/30"}`} />
-                <span className="text-foreground/80 flex-1">{n.event}</span>
-                <span className="text-[10px] text-muted-foreground/40 shrink-0">{formatTs(n.timestamp)}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </div>
   );

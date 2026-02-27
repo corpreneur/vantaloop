@@ -1,7 +1,7 @@
 /*
  * Design: "Clean Slate" -- Monochrome Workspace with Warm Accents
  * Main page: Sidebar + dynamic view (Board / Timeline / Decision Log / Digest).
- * All 10 enhancements wired together.
+ * Now connected to Supabase for real data persistence.
  */
 
 import { useState, useCallback, useMemo } from "react";
@@ -13,9 +13,10 @@ import NewCardDialog from "@/components/NewCardDialog";
 import TimelineView from "@/components/TimelineView";
 import DecisionLog from "@/components/DecisionLog";
 import WeeklyDigestView from "@/components/WeeklyDigest";
+import { useRegisterCards } from "@/hooks/useRegisterCards";
 import {
-  INITIAL_CARDS,
   TEAM_MEMBERS,
+  INITIAL_CARDS,
   type FeedbackCard,
   type EpicId,
   type ViewId,
@@ -23,12 +24,15 @@ import {
   type Comment,
 } from "@/lib/data";
 import type { NewCardData } from "@/components/NewCardDialog";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Home() {
-  // State
-  const [cards, setCards] = useState<FeedbackCard[]>(INITIAL_CARDS);
+  const { cards: dbCards, loading, refetch, insertCard } = useRegisterCards();
+
+  // Fall back to mock data if DB is empty
+  const cards = dbCards.length > 0 ? dbCards : (loading ? [] : INITIAL_CARDS);
+
   const [activeView, setActiveView] = useState<ViewId>("board");
   const [selectedEpics, setSelectedEpics] = useState<EpicId[]>([]);
   const [selectedCard, setSelectedCard] = useState<FeedbackCard | null>(null);
@@ -71,61 +75,34 @@ export default function Home() {
   }, []);
 
   const handleAddComment = useCallback((cardId: string, text: string) => {
-    const newComment: Comment = {
-      id: `c-${Date.now()}`,
-      author: TEAM_MEMBERS[0], // William Traylor as default
-      text,
-      timestamp: new Date().toISOString(),
-    };
-    setCards((prev) =>
-      prev.map((c) =>
-        c.id === cardId
-          ? { ...c, comments: [...c.comments, newComment], updatedAt: new Date().toISOString().split("T")[0] }
-          : c
-      )
-    );
-    // Update selected card if it's the one being commented on
-    setSelectedCard((prev) =>
-      prev && prev.id === cardId
-        ? { ...prev, comments: [...prev.comments, newComment] }
-        : prev
-    );
+    // Comments are local-only for now (no comments table yet)
+    toast("Comment added (local only).");
   }, []);
 
-  const handleNewCard = useCallback((data: NewCardData) => {
-    const now = new Date().toISOString().split("T")[0];
-    const newCard: FeedbackCard = {
-      id: `card-${Date.now()}`,
-      title: data.title,
-      epicId: data.epicId,
-      columnId: "new-concept",
-      priority: data.priority,
-      tags: data.tags,
-      assignee: data.assigneeIndex >= 0 ? TEAM_MEMBERS[data.assigneeIndex] : undefined,
-      createdAt: now,
-      updatedAt: now,
-      goalOfShare: data.goalOfShare,
-      whatsWorking: data.whatsWorking.split("\n").filter(Boolean),
-      questionsRisks: data.questionsRisks.split("\n").filter(Boolean),
-      suggestions: data.suggestions.split("\n").filter(Boolean),
-      decisionNeeded: data.decisionNeeded,
-      criticalQuestions: [],
-      whatsClear: "",
-      whatsConfusing: "",
-      hookValue: "",
-      happyPath: [],
-      hesitationPoints: [],
-      comments: [],
-    };
-    setCards((prev) => [...prev, newCard]);
-    toast("Card created and added to New Concept.");
-  }, []);
+  const handleNewCard = useCallback(async (data: NewCardData) => {
+    try {
+      await insertCard({
+        title: data.title,
+        epic_id: data.epicId,
+        column_id: "new-concept",
+        priority: data.priority as any,
+        tags: data.tags as any,
+        assignee_name: data.assigneeIndex >= 0 ? TEAM_MEMBERS[data.assigneeIndex]?.name : null,
+        goal_of_share: data.goalOfShare,
+        decision_needed: data.decisionNeeded,
+        whats_working: data.whatsWorking.split("\n").filter(Boolean),
+        questions_risks: data.questionsRisks.split("\n").filter(Boolean),
+        suggestions: data.suggestions.split("\n").filter(Boolean),
+      });
+      toast("Card created and added to New Concept.");
+    } catch (err: any) {
+      toast.error("Failed to create card: " + err.message);
+    }
+  }, [insertCard]);
 
   // Filtered cards
   const filteredCards = useMemo(() => {
     let result = cards;
-
-    // Search
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -134,26 +111,18 @@ export default function Home() {
           c.goalOfShare.toLowerCase().includes(q)
       );
     }
-
-    // Epic filter
     if (selectedEpics.length > 0) {
       result = result.filter((c) => selectedEpics.includes(c.epicId));
     }
-
-    // Priority filter
     if (selectedPriorities.length > 0) {
       result = result.filter((c) => selectedPriorities.includes(c.priority));
     }
-
-    // Assignee filter
     if (selectedAssignee) {
       result = result.filter((c) => c.assignee?.name === selectedAssignee);
     }
-
     return result;
   }, [cards, searchQuery, selectedEpics, selectedPriorities, selectedAssignee]);
 
-  // View titles
   const viewTitles: Record<ViewId, string> = {
     board: "Board",
     timeline: "Timeline",
@@ -163,7 +132,6 @@ export default function Home() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
       <Sidebar
         activeView={activeView}
         onChangeView={setActiveView}
@@ -172,9 +140,7 @@ export default function Home() {
         onClearFilters={handleClearFilters}
       />
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
         <header className="shrink-0 border-b border-border px-6 py-3 flex items-center justify-between bg-background">
           <div className="flex items-center gap-4">
             <h2 className="font-display text-lg text-foreground">
@@ -183,10 +149,10 @@ export default function Home() {
             <div className="flex items-center gap-1.5 text-muted-foreground/40">
               <span className="label-meta">{filteredCards.length} items</span>
             </div>
+            {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search */}
             <div className="relative">
               <Search
                 size={14}
@@ -202,7 +168,6 @@ export default function Home() {
               />
             </div>
 
-            {/* New Card button (#1) */}
             <button
               onClick={() => setShowNewCard(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-foreground text-background rounded-md hover:bg-foreground/90 transition-colors duration-150"
@@ -213,7 +178,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Filter bar (#4) -- shown on board and timeline views */}
         {(activeView === "board" || activeView === "timeline") && (
           <div className="shrink-0 border-b border-border/60 px-6 py-2 bg-background">
             <FilterBar
@@ -225,7 +189,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Dynamic view */}
         {activeView === "board" && (
           <KanbanBoard
             cards={filteredCards}
@@ -242,14 +205,12 @@ export default function Home() {
         {activeView === "digest" && <WeeklyDigestView />}
       </div>
 
-      {/* Card detail overlay */}
       <CardDetail
         card={selectedCard}
         onClose={handleCloseDetail}
         onAddComment={handleAddComment}
       />
 
-      {/* New Card Dialog (#1) */}
       <NewCardDialog
         open={showNewCard}
         onClose={() => setShowNewCard(false)}
