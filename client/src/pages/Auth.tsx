@@ -46,7 +46,7 @@ export default function Auth() {
       {/* Left branding panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-foreground items-end justify-start p-12 relative overflow-hidden">
         <div className="relative z-10 space-y-6">
-          <img src={vantaLogo} alt="Vanta Wireless" className="h-14 brightness-0 invert" />
+          <img src={vantaLogo} alt="Vanta Wireless" className="h-14 brightness-0 invert mix-blend-screen" />
           <p className="text-background/60 text-sm max-w-sm leading-relaxed font-sans">
             Design Feedback Board — Streamlined triage and decision-making for the Vanta × Metalab design partnership.
           </p>
@@ -62,7 +62,7 @@ export default function Auth() {
         <div className="w-full max-w-sm space-y-8">
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-4">
-            <img src={vantaLogo} alt="Vanta Wireless" className="h-10" />
+            <img src={vantaLogo} alt="Vanta Wireless" className="h-10 mix-blend-multiply" />
           </div>
 
           <div className="text-center space-y-2">
