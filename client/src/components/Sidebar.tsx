@@ -5,7 +5,7 @@
  */
 
 import { EPICS, TEAM_MEMBERS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
-import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight, Inbox } from "lucide-react";
+import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight, Inbox, PenLine } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 
@@ -58,10 +58,19 @@ export function SidebarContent({
         {/* Intake Triage - prominent at top */}
         <Link
           href="/triage"
-          className="flex items-center gap-2.5 px-2 py-2.5 rounded-md w-full text-left text-foreground font-semibold bg-secondary/60 hover:bg-secondary transition-colors duration-150 mb-2"
+          className="flex items-center gap-2.5 px-2 py-2.5 rounded-md w-full text-left text-foreground font-semibold bg-secondary/60 hover:bg-secondary transition-colors duration-150"
         >
           <Inbox size={16} strokeWidth={2} />
           <span className="text-sm">Intake Triage</span>
+        </Link>
+
+        {/* Team intake form */}
+        <Link
+          href="/intake"
+          className="flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-150 mb-2"
+        >
+          <PenLine size={15} strokeWidth={1.5} />
+          <span className="text-sm font-medium">Capture Signal</span>
         </Link>
 
         {VIEWS.map((view) => {

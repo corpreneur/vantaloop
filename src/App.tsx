@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import SubmitFeedback from "./pages/SubmitFeedback";
+import TeamIntake from "./pages/TeamIntake";
 import TriageDashboard from "./pages/TriageDashboard";
 
 function Router() {
@@ -13,6 +14,8 @@ function Router() {
     <Switch>
       {/* Public: feedback submission form (no login required) */}
       <Route path="/submit" component={SubmitFeedback} />
+      {/* Team intake: quick signal capture for triage */}
+      <Route path="/intake" component={TeamIntake} />
       {/* Protected: intake triage dashboard */}
       <Route path="/triage" component={TriageDashboard} />
       {/* Primary: V2 Kanban board with all enhancements */}
