@@ -5,7 +5,7 @@
  */
 
 import { EPICS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
-import { LayoutGrid, Clock, Gavel, Bot, Filter, ChevronDown, ChevronRight, Inbox, PenLine, LogOut } from "lucide-react";
+import { LayoutGrid, Clock, Gavel, Bot, Filter, ChevronDown, ChevronRight, Inbox, PenLine, LogOut, UserCog } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +37,7 @@ export function SidebarContent({
   onClearFilters,
   onNavigate,
 }: SidebarProps) {
+  const { isAdmin } = useRole();
   const [epicsOpen, setEpicsOpen] = useState(false);
   const [newCount, setNewCount] = useState(0);
 
@@ -92,6 +93,17 @@ export function SidebarContent({
             </span>
           )}
         </Link>
+
+        {/* Role Management - admin only */}
+        {isAdmin && (
+          <Link
+            href="/admin/roles"
+            className="flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-150"
+          >
+            <UserCog size={15} strokeWidth={1.5} />
+            <span className="text-sm font-medium">Manage Roles</span>
+          </Link>
+        )}
 
         {VIEWS.map((view) => {
           const active = activeView === view.id;

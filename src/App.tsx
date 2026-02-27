@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import SubmitFeedback from "./pages/SubmitFeedback";
 import TeamIntake from "./pages/TeamIntake";
 import TriageDashboard from "./pages/TriageDashboard";
+import RoleManagement from "./pages/RoleManagement";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -32,6 +33,7 @@ function Router() {
       </Route>
       {/* Protected routes */}
       <Route path="/triage">{() => <ProtectedRoute component={TriageDashboard} />}</Route>
+      <Route path="/admin/roles">{() => <ProtectedRoute component={RoleManagement} />}</Route>
       <Route path="/">{() => <ProtectedRoute component={Home} />}</Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
