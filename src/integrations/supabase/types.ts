@@ -59,6 +59,47 @@ export type Database = {
           },
         ]
       }
+      comments: {
+        Row: {
+          author_initials: string
+          author_name: string
+          author_team: string
+          created_at: string
+          id: string
+          register_id: string
+          section: string | null
+          text: string
+        }
+        Insert: {
+          author_initials?: string
+          author_name: string
+          author_team?: string
+          created_at?: string
+          id?: string
+          register_id: string
+          section?: string | null
+          text: string
+        }
+        Update: {
+          author_initials?: string
+          author_name?: string
+          author_team?: string
+          created_at?: string
+          id?: string
+          register_id?: string
+          section?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_register_id_fkey"
+            columns: ["register_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_register"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback_register: {
         Row: {
           assignee_name: string | null

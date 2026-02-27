@@ -28,7 +28,7 @@ import { Search, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Home() {
-  const { cards: dbCards, loading, refetch, insertCard } = useRegisterCards();
+  const { cards: dbCards, loading, refetch, insertCard, addComment } = useRegisterCards();
 
   // Fall back to mock data if DB is empty
   const cards = dbCards.length > 0 ? dbCards : (loading ? [] : INITIAL_CARDS);
@@ -74,10 +74,14 @@ export default function Home() {
     setSelectedAssignee(name);
   }, []);
 
-  const handleAddComment = useCallback((cardId: string, text: string) => {
-    // Comments are local-only for now (no comments table yet)
-    toast("Comment added (local only).");
-  }, []);
+  const handleAddComment = useCallback(async (cardId: string, text: string) => {
+    try {
+      await addComment(cardId, TEAM_MEMBERS[0].name, text);
+      toast("Comment added.");
+    } catch (err: any) {
+      toast.error("Failed to add comment: " + err.message);
+    }
+  }, [addComment]);
 
   const handleNewCard = useCallback(async (data: NewCardData) => {
     try {
