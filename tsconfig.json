@@ -17,6 +17,6 @@
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
     "types": ["node", "vite/client"]
   },
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts", "drizzle", "drizzle/**/*"],
   "include": ["src/**/*", "shared/**/*"]
 }
