@@ -65,7 +65,7 @@ export function SidebarContent({
           className="flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-150 mb-2"
         >
           <PenLine size={15} strokeWidth={1.5} />
-          <span className="text-sm font-medium">Capture Signal</span>
+          <span className="text-sm font-medium">Feedback Signal</span>
         </Link>
 
         {VIEWS.map((view) => {
