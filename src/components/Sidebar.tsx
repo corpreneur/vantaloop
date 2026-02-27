@@ -4,8 +4,8 @@
  * Mobile: rendered inside a Sheet overlay.
  */
 
-import { EPICS, TEAM_MEMBERS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
-import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight, Inbox, PenLine, LogOut } from "lucide-react";
+import { EPICS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
+import { LayoutGrid, Clock, Gavel, Bot, Filter, ChevronDown, ChevronRight, Inbox, PenLine, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -36,7 +36,6 @@ export function SidebarContent({
   onNavigate,
 }: SidebarProps) {
   const [epicsOpen, setEpicsOpen] = useState(false);
-  const [teamOpen, setTeamOpen] = useState(true);
 
   const handleViewChange = (v: ViewId) => {
     onChangeView(v);
@@ -50,22 +49,22 @@ export function SidebarContent({
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {/* Intake Triage - prominent at top */}
+        {/* Feedback Signal - prominent CTA at top */}
+        <Link
+          href="/intake"
+          className="flex items-center gap-2.5 px-3 py-2.5 rounded-md w-full text-left bg-foreground text-background font-semibold hover:opacity-90 transition-opacity duration-150 mb-2"
+        >
+          <PenLine size={16} strokeWidth={2} />
+          <span className="text-sm">Feedback Signal</span>
+        </Link>
+
+        {/* Intake Triage */}
         <Link
           href="/triage"
           className="flex items-center gap-2.5 px-2 py-2.5 rounded-md w-full text-left text-foreground font-semibold bg-secondary/60 hover:bg-secondary transition-colors duration-150"
         >
           <Inbox size={16} strokeWidth={2} />
           <span className="text-sm">Intake Triage</span>
-        </Link>
-
-        {/* Team intake form */}
-        <Link
-          href="/intake"
-          className="flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-150 mb-2"
-        >
-          <PenLine size={15} strokeWidth={1.5} />
-          <span className="text-sm font-medium">Feedback Signal</span>
         </Link>
 
         {VIEWS.map((view) => {
@@ -85,44 +84,6 @@ export function SidebarContent({
             </button>
           );
         })}
-
-        {/* Team section */}
-        <div className="pt-4">
-          <button
-            onClick={() => setTeamOpen(!teamOpen)}
-            className="flex items-center gap-1.5 px-2 py-1 w-full text-left"
-          >
-            {teamOpen ? (
-              <ChevronDown size={12} className="text-muted-foreground" />
-            ) : (
-              <ChevronRight size={12} className="text-muted-foreground" />
-            )}
-            <span className="label-meta text-muted-foreground">Team</span>
-          </button>
-
-          {teamOpen && (
-            <div className="mt-1 space-y-0.5">
-              {TEAM_MEMBERS.map((member) => (
-                <div
-                  key={member.name}
-                  className="flex items-center gap-2.5 px-2 py-1.5"
-                >
-                  <div className="w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-medium">
-                      {member.initials}
-                    </span>
-                  </div>
-                  <span className="text-sm text-muted-foreground truncate">
-                    {member.name}
-                  </span>
-                  <span className="label-meta text-muted-foreground/60 ml-auto text-[9px]">
-                    {member.team}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Epics section */}
         <div className="pt-4">
