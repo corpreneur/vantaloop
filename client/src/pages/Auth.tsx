@@ -67,10 +67,10 @@ export default function Auth() {
 
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-semibold tracking-tight font-display">
-              {isLogin ? "Welcome back" : "Create account"}
+              {isLogin ? "Welcome back to VantaLoop" : "Join VantaLoop"}
             </h1>
             <p className="text-sm text-muted-foreground">
-              {isLogin ? "Sign in to access the feedback board" : "Sign up to get started"}
+              {isLogin ? "Sign in to continue shaping the Vanta × Metalab design partnership" : "Create your account to start collaborating"}
             </p>
           </div>
 
