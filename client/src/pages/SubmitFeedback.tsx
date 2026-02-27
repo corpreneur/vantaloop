@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CheckCircle, Send, ChevronDown } from "lucide-react";
+import vantaLogo from "@/assets/vanta-logo.jpg";
 
 const FEEDBACK_TYPES = [
   { value: "concept-direction", label: "Concept Direction" },
@@ -104,9 +105,7 @@ export default function SubmitFeedback() {
       <header className="border-b border-border">
         <div className="max-w-2xl mx-auto px-6 py-6">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 rounded-md bg-foreground flex items-center justify-center">
-              <span className="text-background font-bold text-sm">V</span>
-            </div>
+            <img src={vantaLogo} alt="Vanta Wireless" className="h-8" />
             <span className="label-meta text-muted-foreground">VantaLoop</span>
           </div>
           <h1 className="font-display text-3xl text-foreground mt-4">Share your feedback</h1>

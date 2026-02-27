@@ -5,9 +5,11 @@
  */
 
 import { EPICS, TEAM_MEMBERS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
-import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight, Inbox, PenLine } from "lucide-react";
+import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight, Inbox, PenLine, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import vantaLogo from "@/assets/vanta-logo.jpg";
 
 const VIEW_ICONS: Record<ViewId, React.ReactNode> = {
   board: <LayoutGrid size={15} strokeWidth={1.5} />,
@@ -45,9 +47,7 @@ export function SidebarContent({
     <div className="flex flex-col h-full bg-sidebar">
       {/* Header */}
       <div className="px-5 pt-6 pb-4 border-b border-border">
-        <h1 className="font-display text-xl tracking-tight text-foreground leading-tight">
-          Vanta / Metalab
-        </h1>
+        <img src={vantaLogo} alt="Vanta Wireless" className="h-7 mb-2" />
         <p className="label-meta text-muted-foreground mt-1">
           Design Feedback Board
         </p>
@@ -174,7 +174,7 @@ export function SidebarContent({
 
 
       {/* Footer */}
-      <div className="px-5 py-4 border-t border-border">
+      <div className="px-5 py-4 border-t border-border space-y-3">
         {selectedEpics.length > 0 && (
           <button
             onClick={onClearFilters}
@@ -189,8 +189,23 @@ export function SidebarContent({
             Click an epic to filter the board
           </p>
         )}
+        <SignOutButton />
       </div>
     </div>
+  );
+}
+
+function SignOutButton() {
+  const { user, signOut } = useAuth();
+  if (!user) return null;
+  return (
+    <button
+      onClick={signOut}
+      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition-colors duration-150"
+    >
+      <LogOut size={13} strokeWidth={1.5} />
+      Sign out
+    </button>
   );
 }
 
