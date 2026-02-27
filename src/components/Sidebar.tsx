@@ -46,12 +46,7 @@ export function SidebarContent({
   return (
     <div className="flex flex-col h-full bg-sidebar">
       {/* Header */}
-      <div className="px-5 pt-6 pb-4 border-b border-border">
-        <img src={vantaLogo} alt="Vanta Wireless" className="h-7 mb-2" />
-        <p className="label-meta text-muted-foreground mt-1">
-          Design Feedback Board
-        </p>
-      </div>
+      <SidebarHeader />
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
@@ -191,6 +186,28 @@ export function SidebarContent({
         )}
         <SignOutButton />
       </div>
+    </div>
+  );
+}
+
+function SidebarHeader() {
+  const { user } = useAuth();
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0] 
+    || user?.email?.split("@")[0] 
+    || null;
+
+  return (
+    <div className="px-5 pt-6 pb-4 border-b border-border">
+      <img src={vantaLogo} alt="Vanta Wireless" className="h-7 mb-2" />
+      {firstName ? (
+        <p className="text-sm text-muted-foreground mt-1">
+          Welcome back, <span className="text-foreground font-medium">{firstName}</span>
+        </p>
+      ) : (
+        <p className="label-meta text-muted-foreground mt-1">
+          Design Feedback Board
+        </p>
+      )}
     </div>
   );
 }
