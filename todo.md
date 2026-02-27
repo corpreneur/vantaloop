@@ -6,7 +6,7 @@
 - [x] tRPC procedures: register.list, register.updateStatus
 - [x] tRPC procedures: sms.webhook (conversational state machine)
 - [x] Public web form at /submit (no auth required)
-- [x] Triage dashboard at / (auth required, sidebar with Intake + Register views)
+- [x] Triage dashboard at /triage (auth required, sidebar with Intake + Register views)
 - [x] Intake list with status filters (All, New, Under Review, Promoted, Dismissed)
 - [x] Intake detail panel with triage actions (Promote, Review, Dismiss)
 - [x] Register Kanban view (Backlog, In Progress, Resolved, Archived)
@@ -41,3 +41,15 @@
 - [x] Priority and assignee filter chips
 - [x] Feedback type tags
 - [x] Stale card indicators
+
+## Restoration of V2 Board Features
+- [x] Restore Board View with Kanban columns (New Concept, Feedback Submitted, In Review, Decision Made, Archived)
+- [x] Restore Timeline view
+- [x] Restore Decision Log view
+- [x] Restore Weekly Digest view with AI summary and podcast player
+- [x] Restore card detail modal with structured feedback template
+- [x] Restore sidebar with epics, team members, and view navigation
+- [x] Restore filter bar (priority, assignee chips)
+- [x] Restore New Card dialog
+- [x] Restore stale card indicators and feedback type tags
+- [x] Integrate V2 board alongside the new intake/register system (Board at /, Triage at /triage, Submit at /submit)

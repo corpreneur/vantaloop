@@ -6,7 +6,8 @@
  */
 
 import { EPICS, TEAM_MEMBERS, VIEWS, type EpicId, type ViewId } from "@/lib/data";
-import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight } from "lucide-react";
+import { LayoutGrid, Clock, Gavel, Bot, Users, Filter, ChevronDown, ChevronRight, Inbox } from "lucide-react";
+import { Link } from "wouter";
 import { useState } from "react";
 
 const VIEW_ICONS: Record<ViewId, React.ReactNode> = {
@@ -145,6 +146,17 @@ export default function Sidebar({
           )}
         </div>
       </nav>
+
+      {/* Triage link */}
+      <div className="px-3 pt-4">
+        <Link
+          href="/triage"
+          className="flex items-center gap-2.5 px-2 py-2 rounded-md w-full text-left text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-150"
+        >
+          <Inbox size={15} strokeWidth={1.5} />
+          <span className="text-sm font-medium">Intake Triage</span>
+        </Link>
+      </div>
 
       {/* Footer */}
       <div className="px-5 py-4 border-t border-border">
