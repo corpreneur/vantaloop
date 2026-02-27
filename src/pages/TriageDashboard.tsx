@@ -5,8 +5,9 @@ import { Link } from "wouter";
 import {
   Inbox, CheckSquare, Search, ExternalLink,
   ChevronRight, Clock, Filter,
-  XCircle, Loader2, ArrowLeft, ArrowUpRight
+  XCircle, Loader2, ArrowLeft, ArrowUpRight, FileText
 } from "lucide-react";
+import DigestExport from "@/components/DigestExport";
 
 type IntakeStatus = "new" | "triaged" | "promoted" | "dismissed";
 
@@ -61,6 +62,7 @@ export default function TriageDashboard() {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [triageNotes, setTriageNotes] = useState("");
   const [triaging, setTriaging] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -218,6 +220,17 @@ export default function TriageDashboard() {
                 className="pl-8 pr-3 py-1.5 text-sm bg-secondary border border-border rounded-md text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-accent/40 w-48 transition-colors"
               />
             </div>
+            <button
+              onClick={() => { setShowExport(!showExport); setSelectedItemId(null); }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm border rounded-md transition-colors ${
+                showExport
+                  ? "bg-foreground text-background border-foreground"
+                  : "text-muted-foreground hover:text-foreground border-border"
+              }`}
+            >
+              <FileText size={13} />
+              Export Digest
+            </button>
             <a
               href="/submit"
               target="_blank"
@@ -249,7 +262,11 @@ export default function TriageDashboard() {
               ))}
             </div>
 
-            {loading ? (
+            {showExport ? (
+              <div className="p-6">
+                <DigestExport items={filteredItems} />
+              </div>
+            ) : loading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
               </div>
