@@ -1,82 +1,77 @@
-# Vanta <> Metalab: Design Feedback
 
-This template provides a structured format for submitting design feedback. The goal is to ensure all feedback is clear, actionable, and tied to a specific decision.
+_# VantaLoop: Design Feedback Notion Template_
 
----
-
-**Epic**: [Link to Epic]
-**Priority**: [P0-P3]
-**Feedback Type**: [Concept-Direction, Information-Architecture, Interaction-Pattern, Visual-Design, Copy-Content]
-**Assignee**: [Name]
-**Status**: [New Concept, Feedback Submitted, In Review, Decision Made, Archived]
+This document outlines the structure and setup for a comprehensive design feedback system within Notion, tailored for the VantaLoop project. It includes two core databases, "Weekly Intake" and "Feedback Register," designed to streamline the process from initial submission to final resolution.
 
 ---
 
-### Goal of this share
-*A concise, one-sentence summary of the design goal.*
+## 1. Weekly Intake Database
 
-### What's working
-*What aspects of the design are effective and should be kept?*
-- 
-- 
-- 
+The "Weekly Intake" database serves as the central repository for all incoming feedback, whether from the web form or the SMS loop. Each entry represents a single piece of raw, unprocessed feedback.
 
-### Questions/risks
-*What open questions or potential risks does this design raise?*
-- 
-- 
-- 
+### Properties
 
-### Suggestions
-*Propose specific, testable changes to address the questions and risks.*
+| Property | Type | Description |
+| --- | --- | --- |
+| **Subject** | `Title` | The main subject or title of the feedback. |
+| **Submitter** | `Text` | The name of the person who submitted the feedback. |
+| **Channel** | `Select` | The source of the feedback. Options: `Web`, `SMS`. |
+| **Feedback Type** | `Multi-select` | The category of the feedback. Options: `Concept-Direction`, `Information-Architecture`, `Interaction-Pattern`, `Visual-Design`, `Copy-Content`, `General`. |
+| **Status** | `Select` | The current status of the feedback. Options: `New`, `Under Review`, `Promoted`, `Dismissed`. |
+| **Week** | `Text` | The week number or date range when the feedback was submitted (e.g., "2024-W08"). |
+| **Triaged By** | `Person` | The team member(s) who reviewed the feedback. |
+| **Triage Notes** | `Text` | Notes and comments from the triage session. |
+| **Goal of Share** | `Text` | What the submitter aimed to achieve by sharing this feedback. |
+| **What's Working** | `Text` | Positive aspects highlighted by the submitter. |
+| **Questions/Risks** | `Text` | Any questions or potential risks raised. |
+| **Suggestions** | `Text` | Specific suggestions for improvement. |
+| **Decision Needed** | `Text` | Any specific decision required from the team. |
 
-### Decision needed today
-*Clearly state the primary decision required based on this feedback (e.g., "Proceed with Concept A vs. B").*
+### Views
+
+- **All Intake:** A simple table view showing all submitted feedback, sorted by week.
+- **This Week:** A filtered view showing only feedback submitted in the current week.
+- **Needs Triage:** A filtered view showing all feedback with the status "New," serving as the primary queue for the weekly triage meeting.
+
+## 2. Feedback Register Database
+
+Once a piece of feedback from the "Weekly Intake" is deemed actionable, it is promoted to the "Feedback Register." This database tracks the entire lifecycle of a formal feedback item, from backlog to resolution.
+
+### Properties
+
+| Property | Type | Description |
+| --- | --- | --- |
+| **Title** | `Title` | A concise, actionable title for the feedback item. |
+| **Epic** | `Select` | The larger product or design epic this feedback relates to. |
+| **Priority** | `Select` | The priority of the feedback. Options: `High`, `Medium`, `Low`. |
+| **Status** | `Select` | The current stage of the feedback. Options: `Backlog`, `In Progress`, `Resolved`, `Archived`. |
+| **Assignee** | `Person` | The team member(s) responsible for addressing the feedback. |
+| **Feedback Type** | `Multi-select` | The category of the feedback, inherited from the intake item. |
+| **Decision** | `Text` | The final decision made regarding the feedback. |
+| **Decision Rationale** | `Text` | The reasoning behind the final decision. |
+| **Promoted From** | `Relation` | A relation to the original item in the "Weekly Intake" database. |
+
+### Template: New Intake Item
+
+Create a template within the "Weekly Intake" database with the following fields pre-filled to guide submitters and streamline the triage process.
+
+- **Subject:** [Briefly describe the core feedback]
+- **Goal of Share:** [What do you hope to achieve by sharing this? e.g., get a decision, share a concern, suggest an improvement]
+- **What's Working:** [What aspects of the current design/concept are effective?]
+- **Questions/Risks:** [Are there any open questions or potential risks you foresee?]
+- **Suggestions:** [What specific changes or improvements would you recommend?]
+- **Decision Needed:** [Is there a specific decision you need from the team?]
+
+### Views
+
+- **Register Board:** A Kanban board view grouped by the "Status" property, providing a clear visual overview of the feedback pipeline.
+- **Decision Log:** A filtered table view showing only items with the status "Resolved," creating a searchable log of all final decisions.
+
+## 3. Notion Setup Instructions
+
+We will follow a step-by-step process to configure the Notion workspace. First, create a new page in Notion and title it "VantaLoop Design Feedback." Second, create the two databases as described above, "Weekly Intake" and "Feedback Register." Third, populate the properties for each database exactly as specified in the tables. Fourth, establish the relation between the "Feedback Register" and "Weekly Intake" databases using the "Promoted From" property. Fifth, create the new intake item template within the "Weekly Intake" database. Finally, configure the specified views for both databases to create the necessary dashboards for triage and tracking.
+
 
 ---
 
-### Critical Questions
-- [ ] Is this the right problem to solve?
-- [ ] Which concept direction is strongest?
-- [ ] What are the biggest risks with this approach?
-- [ ] What should we prototype next?
-
-### Clarity + Value
-- **What part is immediately clear?**
-- **What feels confusing or missing?**
-- **What is the hook or main value in one sentence?**
-
-### Flow at 10,000 feet
-- **What is the happy path in 4-6 steps?**
-- **Where would a user hesitate or drop off?**
-
----
-
-### Decision
-- [ ] Proceed with concept A
-- [ ] Proceed with concept B
-- [ ] Combine A + B
-- [ ] Pause and redefine the problem
-
-**Rationale:**
-*Provide a clear justification for the decision.*
-
----
-
-## Notion Setup Instructions
-
-To set up this feedback workstream in Notion, follow these steps:
-
-**Step 1 -- Create the Database.** In the shared Vanta-Metalab workspace, create a new full-page database. Name it "Design Feedback Board". Set the default view to "Board" and group by a "Status" select property with the following options: New Concept, Feedback Submitted, In Review, Decision Made, Archived.
-
-**Step 2 -- Add Properties.** Add the following properties to the database: "Epic" (Select: Feedback Hub Setup, Design Share & Feedback, Synthesis & Decisions, Agentic Aggregation), "Priority" (Select: P0, P1, P2, P3), "Feedback Type" (Multi-select: Concept-Direction, Information-Architecture, Interaction-Pattern, Visual-Design, Copy-Content), "Assignee" (Person), "Created" (Created time), and "Last Edited" (Last edited time).
-
-**Step 3 -- Create the Template.** Inside the database, create a new template. Name it "Design Feedback Card". Paste the full template content above (from "Goal of this share" through "Rationale") into the template body. This ensures every new card starts with the structured format.
-
-**Step 4 -- Create Additional Views.** Add a "Timeline" view (timeline by Created time, grouped by Epic). Add a "Decision Log" view (table, filtered to Status = Decision Made, showing only Title, Decision, Rationale, and Last Edited columns). Add a "Stale Items" view (table, filtered to Last Edited is more than 5 days ago AND Status is not Decision Made or Archived).
-
-**Step 5 -- Share with the Team.** Add all Vanta and Metalab team members to the workspace. Set permissions so that all members can edit. Pin the database to the sidebar for easy access.
-
----
-
-*Vanta Wireless <> Metalab Design Workstream*
+_Vanta Wireless ... VantaLoop Design Feedback System_

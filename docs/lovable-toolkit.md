@@ -1,229 +1,282 @@
-# Lovable.dev Toolkit Prompt: Vanta-Metalab Design Feedback Hub
 
-## 1. Project Overview
+_VantaLoop Design Feedback System -- Lovable Toolkit Prompt_
 
-This project is to build a dedicated, web-based Design Feedback Hub to streamline the collaborative design process between Vanta Wireless and the external design firm, Metalab. The application will serve as a structured, decision-oriented feedback loop, moving away from ad-hoc communication channels. It will be a single-page application (SPA) centered around a Kanban-style board where design concepts are submitted, reviewed, and decided upon. The core goal is to create a system of record for design feedback, ensuring clarity, accountability, and a searchable history of all design-related decisions. The system is commissioned by William Traylor (CBO, Vanta) to manage the workstream with Glenn Teuber, Leon Anderson (Vanta), and Sue, Edy Goulet (Metalab).
+## 1. System Overview and Architecture
 
-## 2. Tech Stack
+The VantaLoop system is a two-stage design feedback collection and management tool for the Vanta Wireless team. It is designed to capture raw, unstructured feedback through accessible channels and then triage it into a structured, actionable register.
 
-- **Framework**: React 19
-- **Styling**: Tailwind CSS 4
-- **UI Components**: shadcn/ui
-- **Animation**: Framer Motion
-- **Routing**: Wouter
-- **State Management**: Zustand
+*   **Stage 1: Intake:** Team members can submit feedback via a public, mobile-first web form or a conversational SMS loop. This stage prioritizes ease of submission to encourage a high volume of input.
+*   **Stage 2: Triage & Register:** A protected dashboard allows designated reviewers (William Traylor, Sue from Metalab) to review all intake items weekly. Actionable feedback is promoted to a formal Kanban-style register for tracking and resolution.
 
-## 3. Design System
+**Technical Architecture:**
 
-- **Aesthetic**: "Clean Slate" -- a B/W monochrome theme that is minimalist and content-focused.
-- **Accent Color**: A warm copper for all interactive elements, calls-to-action, and highlights.
-- **Typography**:
-  - Display/Headings: Instrument Serif
-  - Body/UI Text: Satoshi
-- **CSS Variables**:
+*   **Frontend:** React 19, Tailwind 4
+*   **Backend:** Node.js with Express 4
+*   **API:** tRPC 11 for end-to-end typesafe API routes
+*   **Database:** MySQL
+*   **ORM:** Drizzle ORM
+*   **SMS:** Twilio API for the conversational intake channel
 
-```css
-:root {
-  --background: oklch(99.5% 0 0);
-  --foreground: oklch(5% 0 0);
-  --card: oklch(98% 0 0);
-  --card-foreground: oklch(5% 0 0);
-  --popover: oklch(98% 0 0);
-  --popover-foreground: oklch(5% 0 0);
-  --primary: oklch(0.68 0.08 55);
-  --primary-foreground: oklch(99.5% 0 0);
-  --border: oklch(90% 0 0);
-  --input: oklch(90% 0 0);
-  --ring: oklch(0.68 0.08 55);
-}
-```
+This architecture provides a modern, scalable, and type-safe foundation for the application.
 
-## 4. Data Model (TypeScript Interfaces)
+## 2. Component & Page Specifications
+
+### a. `SubmitFeedback` Page (`/submit`)
+
+**Purpose:** Public, mobile-first form for submitting raw feedback. No authentication required.
+
+**Component Breakdown:**
+*   A single-page React component handling the form state and submission.
+*   Uses Tailwind CSS for responsive styling.
+*   Form fields correspond to the structured feedback template.
+
+**Fields:**
+*   Submitter Name (text input, optional)
+*   Feedback Type (select dropdown: `concept-direction`, `information-architecture`, `interaction-pattern`, `visual-design`, `copy-content`, `general`)
+*   Subject (text input, required)
+*   Goal of Share (textarea, optional)
+*   What's Working (textarea, optional)
+*   Questions/Risks (textarea, optional)
+*   Suggestions (textarea, optional)
+*   Decision Needed (textarea, optional)
+
+### b. `TriageDashboard` Page (Protected Route)
+
+**Purpose:** Allows authenticated users (William, Sue) to review intake items and promote them to the register.
+
+**Component Breakdown:**
+*   A table view of all items from the `intake_items` table with a "New" status.
+*   Each row should have buttons to "Promote to Register" or "Dismiss".
+*   "Promote" opens a modal to create a new `register_items` entry, pre-filling data from the intake item.
+*   "Dismiss" changes the intake item's status to "Dismissed".
+
+### c. `RegisterKanban` Page (Protected Route)
+
+**Purpose:** A Kanban board to track the status of formal feedback items.
+
+**Component Breakdown:**
+*   Displays `register_items` as cards in columns corresponding to their status.
+*   Columns: `Backlog`, `In Progress`, `Resolved`, `Archived`.
+*   Cards should be draggable between columns to update status.
+*   Clicking a card opens a detailed view with all fields and a section for comments.
+
+### d. SMS Webhook (`/api/sms`)
+
+**Purpose:** An Express route to handle incoming Twilio SMS messages.
+
+**Logic:**
+*   Receives POST requests from Twilio.
+*   Manages a conversational state for each user (phone number) in the `sms_conversations` table.
+*   Prompts the user for each feedback field one by one.
+*   Handles `SKIP` commands to move to the next optional field.
+*   On completion, creates a new entry in the `intake_items` table with `channel` set to `SMS`.
+
+_VantaLoop Design Feedback System -- Lovable Toolkit Prompt_
+
+## 1. System Overview and Architecture
+
+The VantaLoop system is a two-stage design feedback collection and management tool for the Vanta Wireless team. It is designed to capture raw, unstructured feedback through accessible channels and then triage it into a structured, actionable register.
+
+*   **Stage 1: Intake:** Team members can submit feedback via a public, mobile-first web form or a conversational SMS loop. This stage prioritizes ease of submission to encourage a high volume of input.
+*   **Stage 2: Triage & Register:** A protected dashboard allows designated reviewers (William Traylor, Sue from Metalab) to review all intake items weekly. Actionable feedback is promoted to a formal Kanban-style register for tracking and resolution.
+
+**Technical Architecture:**
+
+*   **Frontend:** React 19, Tailwind 4
+*   **Backend:** Node.js with Express 4
+*   **API:** tRPC 11 for end-to-end typesafe API routes
+*   **Database:** MySQL
+*   **ORM:** Drizzle ORM
+*   **SMS:** Twilio API for the conversational intake channel
+
+This architecture provides a modern, scalable, and type-safe foundation for the application.
+
+## 2. Component & Page Specifications
+
+### a. `SubmitFeedback` Page (`/submit`)
+
+**Purpose:** Public, mobile-first form for submitting raw feedback. No authentication required.
+
+**Component Breakdown:**
+*   A single-page React component handling the form state and submission.
+*   Uses Tailwind CSS for responsive styling.
+*   Form fields correspond to the structured feedback template.
+
+**Fields:**
+*   Submitter Name (text input, optional)
+*   Feedback Type (select dropdown: `concept-direction`, `information-architecture`, `interaction-pattern`, `visual-design`, `copy-content`, `general`)
+*   Subject (text input, required)
+*   Goal of Share (textarea, optional)
+*   What's Working (textarea, optional)
+*   Questions/Risks (textarea, optional)
+*   Suggestions (textarea, optional)
+*   Decision Needed (textarea, optional)
+
+### b. `TriageDashboard` Page (Protected Route)
+
+**Purpose:** Allows authenticated users (William, Sue) to review intake items and promote them to the register.
+
+**Component Breakdown:**
+*   A table view of all items from the `intake_items` table with a "New" status.
+*   Each row should have buttons to "Promote to Register" or "Dismiss".
+*   "Promote" opens a modal to create a new `register_items` entry, pre-filling data from the intake item.
+*   "Dismiss" changes the intake item's status to "Dismissed".
+
+### c. `RegisterKanban` Page (Protected Route)
+
+**Purpose:** A Kanban board to track the status of formal feedback items.
+
+**Component Breakdown:**
+*   Displays `register_items` as cards in columns corresponding to their status.
+*   Columns: `Backlog`, `In Progress`, `Resolved`, `Archived`.
+*   Cards should be draggable between columns to update status.
+*   Clicking a card opens a detailed view with all fields and a section for comments.
+
+### d. SMS Webhook (`/api/sms`)
+
+**Purpose:** An Express route to handle incoming Twilio SMS messages.
+
+**Logic:**
+*   Receives POST requests from Twilio.
+*   Manages a conversational state for each user (phone number) in the `sms_conversations` table.
+*   Prompts the user for each feedback field one by one.
+*   Handles `SKIP` commands to move to the next optional field.
+*   On completion, creates a new entry in the `intake_items` table with `channel` set to `SMS`.
+
+## 3. Data Model (TypeScript Interfaces)
 
 ```typescript
-// enums.ts
-export enum Priority {
-  P0 = "P0",
-  P1 = "P1",
-  P2 = "P2",
-  P3 = "P3",
+export const feedbackTypes = [
+  'concept-direction',
+  'information-architecture',
+  'interaction-pattern',
+  'visual-design',
+  'copy-content',
+  'general',
+] as const;
+
+export type FeedbackType = typeof feedbackTypes[number];
+
+export interface IntakeItem {
+  id: number;
+  createdAt: Date;
+  submitterName?: string;
+  channel: 'WEB' | 'SMS';
+  feedbackType: FeedbackType;
+  subject: string;
+  goalOfShare?: string;
+  whatsWorking?: string;
+  questionsRisks?: string;
+  suggestions?: string;
+  decisionNeeded?: string;
+  status: 'New' | 'Under Review' | 'Promoted' | 'Dismissed';
 }
 
-export enum FeedbackTag {
-  ConceptDirection = "concept-direction",
-  InformationArchitecture = "information-architecture",
-  InteractionPattern = "interaction-pattern",
-  VisualDesign = "visual-design",
-  CopyContent = "copy-content",
-}
-
-// models.ts
-export interface TeamMember {
-  id: string;
-  name: string;
-  avatarUrl?: string;
-  role: string; // e.g., 'CBO, Vanta'
-}
-
-export interface Epic {
-  id: string;
-  name: string;
-  description: string;
-}
-
-export interface Column {
-  id: string; // 'new-concept', 'feedback-submitted', etc.
+export interface RegisterItem {
+  id: number;
+  createdAt: Date;
   title: string;
-  cardIds: string[];
+  epic?: string;
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'Backlog' | 'In Progress' | 'Resolved' | 'Archived';
+  assigneeId?: number;
+  feedbackType: FeedbackType;
+  decision?: string;
+  decisionRationale?: string;
+  promotedFromId?: number; // Foreign key to IntakeItem
 }
 
 export interface Comment {
-  id: string;
-  author: TeamMember;
+  id: number;
+  createdAt: Date;
   content: string;
-  createdAt: string; // ISO 8601 Date String
-  threadId?: string; // For threaded replies
+  authorId: number;
+  registerItemId: number;
 }
 
-export interface FeedbackCard {
-  id: string;
-  title: string;
-  epicId: string;
-  columnId: string;
-  assignee?: TeamMember;
-  createdAt: string; // ISO 8601 Date String
-  updatedAt: string; // ISO 8601 Date String
-  tags: FeedbackTag[];
-  comments: Comment[];
-  goalOfShare: string;
-  whatsWorking: string[];
-  questionsRisks: string[];
-  suggestions: string[];
-  decisionNeeded: string;
-  criticalQuestions: string[];
-  whatsClear: string;
-  whatsConfusing: string;
-  hookValue: string;
-  happyPath: string[];
-  hesitationPoints: string[];
-  decision?: string;
-  decisionRationale?: string;
-  priority: Priority;
+export interface SMSConversation {
+  id: number;
+  phoneNumber: string;
+  currentStep: string; // e.g., 'awaiting_subject', 'awaiting_goal'
+  completed: boolean;
+  intakeData: Partial<IntakeItem>;
 }
 
-export interface WeeklyDigest {
-  id: string;
-  weekOf: string; // e.g., '2026-03-02'
-  summary: string; // AI-generated summary
-  audioSummaryUrl?: string;
-  cardsMoved: { cardId: string; from: string; to: string; }[];
-  decisionsMade: { cardId: string; decision: string; }[];
-}
-
-export interface SlackNotification {
-  id: string;
-  cardId: string;
-  message: string;
-  channel: '#shared-vanta-metalab';
-  timestamp: string;
+export interface User {
+  id: number;
+  name: string;
+  email: string; // For login
+  role: 'Admin' | 'Reviewer';
 }
 ```
 
-## 5. Component Tree
+## 4. API Route Reference (tRPC Procedures)
 
-- `App`
-  - `Router` (Wouter)
-    - `Header`
-      - `Logo`
-      - `Navigation` (Board, Timeline, Decision Log, Digest)
-      - `UserMenu`
-    - `Route (path="/")` -> `BoardView`
-      - `BoardColumn` (x5)
-        - `Card`
-          - `CardHeader` (Title, Priority, Assignee)
-          - `CardBadges` (Tags, Stale Indicator)
-    - `Route (path="/timeline")` -> `TimelineView`
-      - `ActivityItem`
-    - `Route (path="/decision-log")` -> `DecisionLogView`
-      - `DecisionRow`
-    - `Route (path="/digest")` -> `DigestView`
-      - `DigestPlayer`
-      - `DigestContent`
-    - `CardModal` (Triggered on Card click)
-      - `CardDetailView`
-        - `StructuredFeedbackSection`
-        - `CommentThread`
-          - `Comment`
-          - `CommentInput`
-      - `NewCardForm` (Triggered from "New Card" button)
+```typescript
+// server/routers/_app.ts
+import { createRouter } from "../createRouter";
+import { intakeRouter } from "./intake";
+import { registerRouter } from "./register";
 
-## 6. Page Routes and Views
+export const appRouter = createRouter()
+  .merge("intake.", intakeRouter)
+  .merge("register.", registerRouter);
 
-- **`/` (Board View)**: The main Kanban board. Columns are "New Concept", "Feedback Submitted", "In Review", "Decision Made", "Archived". Users can drag and drop cards between columns. A "New Card" button is present.
-- **`/timeline` (Timeline View)**: A reverse-chronological feed of all activities across all cards (creation, comments, moves, decisions).
-- **`/decision-log` (Decision Log View)**: A filterable and searchable table view of all cards that have a `decision` and `decisionRationale` filled. Shows card title, decision, and date.
-- **`/digest` (Digest View)**: A view to access historical weekly digests. Includes the AI-generated text summary and an embedded player for the podcast-style audio summary.
+export type AppRouter = typeof appRouter;
 
-## 7. Feature Specifications
+// server/routers/intake.ts
+export const intakeRouter = createRouter()
+  .query("getAll", {
+    // ... returns all intake_items
+  })
+  .mutation("createFromWeb", {
+    input: /* Zod schema for web form */,
+    // ... creates new intake_item with channel: 'WEB'
+  })
+  .mutation("updateStatus", {
+    input: z.object({ id: z.number(), status: z.enum(['New', 'Under Review', 'Promoted', 'Dismissed']) }),
+    // ... updates status of an intake_item
+  });
 
-1.  **New Card Creation Flow**: A button on the Board View opens a modal with a form. The form fields directly map to the structured feedback template (`goalOfShare`, `whatsWorking`, etc.).
-2.  **Threaded Comments**: On the `CardDetailView`, comments are displayed. Users can reply to a specific comment, creating a visual thread.
-3.  **Timeline/Activity View**: A dedicated page at `/timeline` that aggregates all state changes and comments from all cards into a single, real-time feed.
-4.  **Priority and Assignee Filters**: On the Board View, implement filter chips for `Priority` (P0-P3) and `Assignee`. Multiple filters can be active at once.
-5.  **Weekly Digest Generation**: A server-side process (simulated) runs weekly. It summarizes all activity (cards moved, decisions made) into a `WeeklyDigest` object. This should be displayed on the `/digest` page.
-6.  **Podcast-style Audio Summary**: On the `/digest` page, alongside the text summary, include an HTML5 audio player to play a fictional audio summary (`audioSummaryUrl`).
-7.  **Slack Integration**: When a new card is created or a decision is made, a `SlackNotification` object is created. This is a data-only feature; no actual API call is needed. Just show the notification object in a debug view.
-8.  **Decision Log View**: A table at `/decision-log` that only shows cards from the "Decision Made" or "Archived" columns. Key columns: Card Title, Decision, Rationale, Date.
-9.  **Feedback Type Tags**: When creating or editing a card, users can add multiple tags from the `FeedbackTag` enum. These are displayed as badges on the card.
-10. **Stale Card Indicator**: On the Board View, any card that has not had its `updatedAt` field changed in more than 5 business days should display a small, noticeable visual indicator (e.g., a small clock icon with a copper color).
+// server/routers/register.ts
+export const registerRouter = createRouter()
+  .query("getAll", {
+    // ... returns all register_items
+  })
+  .mutation("createFromIntake", {
+    input: /* Zod schema for promotion modal */,
+    // ... creates new register_item, updates intake_item status
+  })
+  .mutation("updateStatus", {
+    input: z.object({ id: z.number(), status: z.enum(['Backlog', 'In Progress', 'Resolved', 'Archived']) }),
+    // ... updates status of a register_item
+  });
+```
 
-## 8. Sample Seed Data (6 Cards)
+## 5. Copy-Paste Remediation Prompts
 
-Provide an array of 6 `FeedbackCard` objects. Populate them with realistic data reflecting different stages of the feedback process. Include at least one card in "New Concept", two in "Feedback Submitted", two in "In Review", and one in "Decision Made". Assign different team members and priorities.
+### a. Build the Triage Dashboard
 
-## 9. Interaction Specifications
+"Using the `IntakeItem` interface and the tRPC `intake.getAll` query, build the `TriageDashboard` React component. It should display all intake items with a status of "New" in a table. Each row must include the submitter, type, subject, and channel. Add two buttons to each row: 'Promote to Register' and 'Dismiss'. The 'Dismiss' button should call the `intake.updateStatus` mutation to set the status to 'Dismissed'. The 'Promote' button will be wired up next."
 
-- **Hover States**: All interactive elements (buttons, links, cards, filter chips) should have a subtle hover state, e.g., a slight lift/scale (`scale: 1.02`) or a change in background color.
-- **Transitions**: Card movements between columns should be animated smoothly using Framer Motion. The layout should reflow gracefully.
-- **Animations**: Opening the `CardModal` should be a gentle fade-in and scale-up animation. Page transitions can be a simple cross-fade.
-- **Drag and Drop**: Implement drag and drop for cards on the board view. The card being dragged should have a distinct visual style (e.g., slight rotation and shadow).
+### b. Build the Register Kanban Board
 
-## 10. As-Built Audit (vantaloop.lovable.app -- Feb 26, 2026)
+"Build the `RegisterKanban` component. Fetch all items using the `register.getAll` query. Create columns for `Backlog`, `In Progress`, `Resolved`, and `Archived`. Render each register item as a card in the appropriate column. Use a drag-and-drop library like `react-beautiful-dnd` to allow moving cards between columns. On drop, call the `register.updateStatus` mutation with the new status."
 
-The following section documents the results of a functional audit against the live Lovable deployment. Use these findings to prioritize the next iteration of development.
+### c. Implement the SMS Webhook Logic
 
-### Critical Remediation Prompts
+"Create the Express route at `/api/sms` to handle POST requests from Twilio. Implement the conversational logic using the `sms_conversations` table to track state. On receiving a message, identify the user by phone number. If it's a new conversation, greet them and ask for the 'Subject'. For subsequent messages, save the previous input and prompt for the next field in the `IntakeItem` sequence. Support a `SKIP` keyword for optional fields. Once all required fields are collected, create the `IntakeItem` in the database, set the channel to `SMS`, and thank the user."
 
-Copy and paste these prompts directly into Lovable to fix the three blocking issues:
+## 6. Twilio Setup Instructions
 
-**Prompt 1 -- Fix New Card Dialog (P0 Blocker):**
+Once the Twilio account is provisioned, the following credentials need to be configured as environment variables in the application deployment environment:
 
-> The "New Card" button in the Board View header does not open any dialog or modal when clicked. Please wire the button's onClick handler to open a modal dialog containing a multi-step form. The form fields should map to the FeedbackCard data model: title, epicId (dropdown), priority (P0-P3 radio), assignee (dropdown of team members), tags (multi-select from FeedbackTag enum), goalOfShare (textarea, required), whatsWorking (textarea), questionsRisks (textarea), suggestions (textarea), decisionNeeded (textarea, required), and criticalQuestions (textarea). On submit, create a new FeedbackCard object with a generated UUID, set columnId to "new-concept", set createdAt and updatedAt to now, and add it to the board state. Close the modal after successful submission.
+*   `TWILIO_ACCOUNT_SID`: Your unique Twilio Account SID.
+*   `TWILIO_AUTH_TOKEN`: Your Twilio authentication token.
+*   `TWILIO_PHONE_NUMBER`: The Twilio-provided phone number for the SMS loop.
 
-**Prompt 2 -- Add Comment Input Field (P0 Blocker):**
-
-> The card detail panel displays existing comments but has no input field for adding new ones. At the bottom of the CommentThread section in the CardDetailView, add a CommentInput component. This should include: a dropdown or avatar selector for the comment author (from the team members list), a textarea for the comment content, and a "Post Comment" button. On submit, create a new Comment object with a generated UUID, the selected author, the content, and the current timestamp. Append it to the card's comments array and re-render the thread. The textarea should clear after submission.
-
-**Prompt 3 -- Add Slack Notification Log (P1 Gap):**
-
-> There is no Slack integration visible in the application. On the Weekly Digest page (/digest), add a "Slack Notifications" section below the Audio Summary section. This should display a list of SlackNotification objects showing: the notification message, the card title it references, the channel name (#shared-vanta-metalab), and the timestamp. Populate it with 3-4 sample notifications matching the seed data events (e.g., "New card created: Mobile App Concept Direction", "Decision made: Notion Workspace Structure"). Style the notifications with a subtle left border accent and a Slack-like message format.
-
-### Enhancement Prompts
-
-These prompts address non-blocking improvements to bring the build closer to the full specification:
-
-**Prompt 4 -- Enrich Decision Log:**
-
-> On the Decision Log page (/decision-log), add a search input field above the table that filters rows by keyword across all columns. Add a "Pending Decisions" section below the main table that shows cards currently in the "In Review" column that have a non-empty decisionNeeded field. Display these pending items in a lighter card format with the card title, the decision needed text, and the assignee.
-
-**Prompt 5 -- Enrich Weekly Digest:**
-
-> On the Weekly Digest page (/digest), restructure the summary section into a four-quadrant grid layout: (1) New Concepts submitted this week, (2) Decisions Made this week, (3) Open Items still in review, (4) Stale Cards flagged this week. Each quadrant should list the relevant card titles with their priority badges. Below the grid, add an HTML5 audio player element with play/pause controls, a progress bar, and a duration display. The audio source can be empty for now, but the player UI should be fully rendered.
-
-**Prompt 6 -- Add Drag and Drop:**
-
-> On the Board View, implement drag and drop for cards between columns. Use @dnd-kit/core and @dnd-kit/sortable. When a card is dragged, it should have a slight rotation (2 degrees) and an elevated shadow. When dropped into a new column, update the card's columnId in state and animate the layout reflow with Framer Motion. Also update the card's updatedAt timestamp to the current time when moved.
+After setting these variables, the webhook URL (`https://<your_domain>/api/sms`) must be configured in the Twilio console for the specified phone number. Set it to trigger on "a message comes in" with an `HTTP POST` request.
 
 ---
 
-*This toolkit is prepared exclusively for Vanta Wireless and its design partner, Metalab.*
+Vanta Wireless ... VantaLoop Design Feedback System
