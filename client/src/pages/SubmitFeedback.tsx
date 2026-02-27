@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../../../src/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CheckCircle, Send, ChevronDown } from "lucide-react";

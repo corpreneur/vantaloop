@@ -3,7 +3,7 @@
  * and map them to the FeedbackCard shape used by all views.
  */
 import { useEffect, useState, useCallback } from "react";
-import { supabase } from "../../../src/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import {
   TEAM_MEMBERS,
   type FeedbackCard,
