@@ -37,7 +37,7 @@ export default function Home() {
 
   const [activeView, setActiveView] = useState<ViewId>("board");
   const [selectedEpics, setSelectedEpics] = useState<EpicId[]>([]);
-  const [selectedCard, setSelectedCard] = useState<FeedbackCard | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
   const [selectedAssignee, setSelectedAssignee] = useState<string | null>(null);
@@ -57,11 +57,11 @@ export default function Home() {
   }, []);
 
   const handleCardClick = useCallback((card: FeedbackCard) => {
-    setSelectedCard(card);
+    setSelectedCardId(card.id);
   }, []);
 
   const handleCloseDetail = useCallback(() => {
-    setSelectedCard(null);
+    setSelectedCardId(null);
   }, []);
 
   const handleTogglePriority = useCallback((p: Priority) => {
@@ -237,7 +237,7 @@ export default function Home() {
         {activeView === "digest" && <WeeklyDigestView />}
       </div>
 
-      <CardDetail card={selectedCard} onClose={handleCloseDetail} onAddComment={handleAddComment} />
+      <CardDetail card={selectedCardId ? cards.find(c => c.id === selectedCardId) ?? null : null} onClose={handleCloseDetail} onAddComment={handleAddComment} />
 
       <NewCardDialog open={showNewCard} onClose={() => setShowNewCard(false)} onSubmit={handleNewCard} />
     </div>

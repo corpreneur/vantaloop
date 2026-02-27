@@ -8,7 +8,6 @@ import { useState } from "react";
 import { TEAM_MEMBERS, type Comment } from "@/lib/data";
 import { Send } from "lucide-react";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
 
 interface CommentThreadProps {
   comments: Comment[];
@@ -22,7 +21,6 @@ export default function CommentThread({ comments, onAddComment }: CommentThreadP
     if (!newComment.trim()) return;
     onAddComment(newComment.trim());
     setNewComment("");
-    toast("Comment added.");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
