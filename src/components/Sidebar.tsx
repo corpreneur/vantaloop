@@ -42,7 +42,7 @@ export function SidebarContent({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-sidebar">
       {/* Header */}
       <div className="px-5 pt-6 pb-4 border-b border-border">
         <h1 className="font-display text-xl tracking-tight text-foreground leading-tight">

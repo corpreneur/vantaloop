@@ -26,7 +26,7 @@ import {
 import type { NewCardData } from "@/components/NewCardDialog";
 import { Search, Plus, Loader2, Menu } from "lucide-react";
 import { toast } from "sonner";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/useMobile";
 
 export default function Home() {
@@ -155,7 +155,8 @@ export default function Home() {
                   <Menu size={20} strokeWidth={1.5} />
                 </button>
               </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[280px]">
+              <SheetContent side="left" className="p-0 w-[280px] [&>button]:hidden">
+                <SheetTitle className="sr-only">Navigation</SheetTitle>
                 <SidebarContent {...sidebarProps} />
               </SheetContent>
             </Sheet>
