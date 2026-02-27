@@ -190,34 +190,108 @@ export type Database = {
         Row: {
           body: string | null
           created_at: string
+          decision_needed: string | null
+          feedback_type: string
+          goal_of_share: string | null
           id: string
+          promoted_register_id: string | null
+          questions_risks: string | null
           source: Database["public"]["Enums"]["intake_source"]
           status: Database["public"]["Enums"]["intake_status"]
           submitter_contact: string | null
           submitter_name: string | null
+          submitter_phone: string | null
+          suggestions: string | null
           title: string
+          triage_notes: string | null
+          triaged_at: string | null
+          triaged_by: string | null
           updated_at: string
+          week_id: string | null
+          whats_working: string | null
         }
         Insert: {
           body?: string | null
           created_at?: string
+          decision_needed?: string | null
+          feedback_type?: string
+          goal_of_share?: string | null
           id?: string
+          promoted_register_id?: string | null
+          questions_risks?: string | null
           source?: Database["public"]["Enums"]["intake_source"]
           status?: Database["public"]["Enums"]["intake_status"]
           submitter_contact?: string | null
           submitter_name?: string | null
+          submitter_phone?: string | null
+          suggestions?: string | null
           title: string
+          triage_notes?: string | null
+          triaged_at?: string | null
+          triaged_by?: string | null
           updated_at?: string
+          week_id?: string | null
+          whats_working?: string | null
         }
         Update: {
           body?: string | null
           created_at?: string
+          decision_needed?: string | null
+          feedback_type?: string
+          goal_of_share?: string | null
           id?: string
+          promoted_register_id?: string | null
+          questions_risks?: string | null
           source?: Database["public"]["Enums"]["intake_source"]
           status?: Database["public"]["Enums"]["intake_status"]
           submitter_contact?: string | null
           submitter_name?: string | null
+          submitter_phone?: string | null
+          suggestions?: string | null
           title?: string
+          triage_notes?: string | null
+          triaged_at?: string | null
+          triaged_by?: string | null
+          updated_at?: string
+          week_id?: string | null
+          whats_working?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intake_items_promoted_register_id_fkey"
+            columns: ["promoted_register_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_register"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_conversations: {
+        Row: {
+          created_at: string
+          current_step: string
+          finalized: boolean
+          id: string
+          partial_data: Json
+          phone_number: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_step?: string
+          finalized?: boolean
+          id?: string
+          partial_data?: Json
+          phone_number: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_step?: string
+          finalized?: boolean
+          id?: string
+          partial_data?: Json
+          phone_number?: string
           updated_at?: string
         }
         Relationships: []
