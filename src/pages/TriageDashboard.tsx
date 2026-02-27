@@ -18,6 +18,14 @@ const STATUS_COLORS: Record<IntakeStatus, string> = {
   dismissed: "bg-neutral-100 text-neutral-500 border-neutral-200",
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  all: "All",
+  new: "New",
+  triaged: "Triaged",
+  promoted: "Promoted",
+  dismissed: "Parked",
+};
+
 const TYPE_LABELS: Record<string, string> = {
   "concept-direction": "Concept",
   "information-architecture": "IA",
@@ -144,7 +152,7 @@ export default function TriageDashboard() {
         newStatus === "promoted"
           ? "Item promoted to register."
           : newStatus === "dismissed"
-          ? "Item dismissed."
+          ? "Item parked."
           : "Item status updated."
       );
       setSelectedItemId(null);
@@ -257,7 +265,7 @@ export default function TriageDashboard() {
                       : "bg-transparent text-muted-foreground border-border hover:border-foreground/20"
                   }`}
                 >
-                  {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+                  {STATUS_LABELS[s] ?? s}
                 </button>
               ))}
             </div>
@@ -292,7 +300,7 @@ export default function TriageDashboard() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded border ${STATUS_COLORS[item.status]}`}>
-                            {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                            {STATUS_LABELS[item.status] ?? item.status}
                           </span>
                           <span className="text-[10px] text-muted-foreground/40 uppercase tracking-wider">
                             {SOURCE_LABELS[item.source] ?? item.source}
@@ -375,7 +383,7 @@ export default function TriageDashboard() {
                         onClick={() => handleTriage(selectedItem.id, "dismissed")}
                         disabled={triaging}
                         className="px-3 py-1.5 text-xs font-medium border border-border rounded-md text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                        title="Dismiss"
+                        title="Park"
                       >
                         <XCircle size={12} />
                       </button>
